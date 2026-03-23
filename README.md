@@ -168,7 +168,10 @@ kubectl get pods -n cloudflare-operator-system
 **Option 3: Helm Chart (Recommended for GitOps/values-driven deployment)**
 
 ```bash
-helm upgrade --install cloudflare-operator ./charts/cloudflare-operator \
+helm repo add cloudflare-operator https://0ekk.github.io/cloudflare-operator
+helm repo update
+
+helm upgrade --install cloudflare-operator cloudflare-operator/cloudflare-operator \
   --namespace cloudflare-operator-system \
   --create-namespace
 

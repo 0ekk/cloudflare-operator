@@ -879,20 +879,22 @@ func (r *GatewayReconciler) reconcileDNS(
 	}
 
 	// Get zone info from tunnel status
-	zoneID := tunnel.GetStatus().ZoneId
-	accountID := tunnel.GetStatus().AccountId
-
-	// Get credentials reference from tunnel
-	credRef := r.getCredentialsReferenceFromTunnel(tunnel)
+	cloudflare := tunnel.GetSpec().Cloudflare
+	if cloudflare.ZoneId == "" {
+		cloudflare.ZoneId = tunnel.GetStatus().ZoneId
+	}
+	if cloudflare.AccountId == "" {
+		cloudflare.AccountId = tunnel.GetStatus().AccountId
+	}
 
 	switch config.Spec.DNSManagement {
 	case networkingv1alpha2.DNSManagementAutomatic:
 		// Register DNS records directly via DNS Service
-		return r.reconcileDNSAutomatic(ctx, gateway, config, hostnames, tunnelCNAME, zoneID, accountID, credRef)
+		return r.reconcileDNSAutomatic(ctx, gateway, config, hostnames, tunnelCNAME, cloudflare)
 
 	case networkingv1alpha2.DNSManagementDNSRecord:
 		// Create DNSRecord CRDs with OwnerReference
-		return r.reconcileDNSRecordCRDs(ctx, gateway, config, hostnames, tunnelCNAME)
+		return r.reconcileDNSRecordCRDs(ctx, gateway, config, hostnames, tunnelCNAME, cloudflare)
 
 	case networkingv1alpha2.DNSManagementManual:
 		logger.V(1).Info("DNS management is manual, skipping")
@@ -900,7 +902,7 @@ func (r *GatewayReconciler) reconcileDNS(
 
 	default:
 		// Default to Automatic if not specified
-		return r.reconcileDNSAutomatic(ctx, gateway, config, hostnames, tunnelCNAME, zoneID, accountID, credRef)
+		return r.reconcileDNSAutomatic(ctx, gateway, config, hostnames, tunnelCNAME, cloudflare)
 	}
 }
 
@@ -912,13 +914,11 @@ func (r *GatewayReconciler) reconcileDNSAutomatic(
 	config *networkingv1alpha2.TunnelGatewayClassConfig,
 	hostnames []string,
 	tunnelCNAME string,
-	_ string, // zoneID - not needed for CRD approach
-	_ string, // accountID - not needed for CRD approach
-	_ networkingv1alpha2.CredentialsReference, // credRef - inherited from namespace
+	cloudflare networkingv1alpha2.CloudflareDetails,
 ) error {
 	// Automatic mode now creates DNSRecord CRDs just like DNSRecord mode
 	// The DNSRecord controller will handle the actual API calls
-	return r.reconcileDNSRecordCRDs(ctx, gateway, config, hostnames, tunnelCNAME)
+	return r.reconcileDNSRecordCRDs(ctx, gateway, config, hostnames, tunnelCNAME, cloudflare)
 }
 
 // reconcileDNSRecordCRDs creates DNSRecord CRDs for each hostname
@@ -929,6 +929,7 @@ func (r *GatewayReconciler) reconcileDNSRecordCRDs(
 	config *networkingv1alpha2.TunnelGatewayClassConfig,
 	hostnames []string,
 	tunnelCNAME string,
+	cloudflare networkingv1alpha2.CloudflareDetails,
 ) error {
 	logger := log.FromContext(ctx)
 
@@ -957,14 +958,13 @@ func (r *GatewayReconciler) reconcileDNSRecordCRDs(
 				},
 			},
 			Spec: networkingv1alpha2.DNSRecordSpec{
-				Name:    hostname,
-				Type:    "CNAME",
-				Content: tunnelCNAME,
-				Proxied: config.IsDNSProxied(),
-				TTL:     1, // Automatic TTL
-				Comment: fmt.Sprintf("Managed by Gateway %s/%s", gateway.Namespace, gateway.Name),
-				// Cloudflare credentials will be resolved by DNSRecord controller
-				// from the namespace's default credentials or the tunnel's credentials
+				Name:       hostname,
+				Type:       "CNAME",
+				Content:    tunnelCNAME,
+				Proxied:    config.IsDNSProxied(),
+				TTL:        1, // Automatic TTL
+				Comment:    fmt.Sprintf("Managed by Gateway %s/%s", gateway.Namespace, gateway.Name),
+				Cloudflare: cloudflare,
 			},
 		}
 

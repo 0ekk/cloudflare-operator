@@ -7,7 +7,10 @@ This chart defaults to `config/default-no-webhook` behavior (operator deployment
 ## Install
 
 ```bash
-helm upgrade --install cloudflare-operator ./charts/cloudflare-operator \
+helm repo add cloudflare-operator https://0ekk.github.io/cloudflare-operator
+helm repo update
+
+helm upgrade --install cloudflare-operator cloudflare-operator/cloudflare-operator \
   --namespace cloudflare-operator-system \
   --create-namespace
 ```
@@ -36,14 +39,14 @@ certManager:
 ## Upgrade
 
 ```bash
-helm upgrade cloudflare-operator ./charts/cloudflare-operator \
+helm upgrade cloudflare-operator cloudflare-operator/cloudflare-operator \
   --namespace cloudflare-operator-system
 ```
 
 Enable webhook + cert-manager:
 
 ```bash
-helm upgrade --install cloudflare-operator ./charts/cloudflare-operator \
+helm upgrade --install cloudflare-operator cloudflare-operator/cloudflare-operator \
   --namespace cloudflare-operator-system \
   --set webhook.enabled=true \
   --set certManager.enabled=true

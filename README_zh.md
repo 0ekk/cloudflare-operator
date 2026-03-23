@@ -173,7 +173,10 @@ kubectl get pods -n cloudflare-operator-system
 **方式 3：Helm Chart（推荐 GitOps / values 驱动部署）**
 
 ```bash
-helm upgrade --install cloudflare-operator ./charts/cloudflare-operator \
+helm repo add cloudflare-operator https://0ekk.github.io/cloudflare-operator
+helm repo update
+
+helm upgrade --install cloudflare-operator cloudflare-operator/cloudflare-operator \
   --namespace cloudflare-operator-system \
   --create-namespace
 

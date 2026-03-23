@@ -113,6 +113,12 @@ func (r *Reconciler) reconcileDNSRecords(ctx context.Context, ingress *networkin
 
 	// Get Cloudflare details from tunnel
 	cloudflare := tunnel.GetSpec().Cloudflare
+	if cloudflare.ZoneId == "" {
+		cloudflare.ZoneId = tunnel.GetStatus().ZoneId
+	}
+	if cloudflare.AccountId == "" {
+		cloudflare.AccountId = tunnel.GetStatus().AccountId
+	}
 
 	// Create DNSRecords with error aggregation
 	var errs []error
