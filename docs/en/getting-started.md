@@ -19,7 +19,7 @@ Single command to install everything:
 
 ```bash
 # All-in-one: CRDs + Namespace + RBAC + Operator
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
 ```
 
 ### Option B: Modular Installation (Recommended for production)
@@ -28,13 +28,13 @@ For fine-grained control over installation:
 
 ```bash
 # Step 1: Install CRDs (requires cluster-admin)
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
 
 # Step 2: Create namespace
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
 
 # Step 3: Install operator (RBAC + Deployment)
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
 ```
 
 ### Available Installation Files
@@ -76,17 +76,30 @@ tunnels.networking.cloudflare-operator.io                         2024-01-01T00:
    - `Account:Cloudflare Tunnel:Edit`
    - `Zone:DNS:Edit` (for your domain)
 
-3. Create the Kubernetes Secret:
+3. Create the Kubernetes Secret and CloudflareCredentials:
 
 ```yaml
+# secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
-  namespace: default
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "<your-api-token>"
+---
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "<your-account-id>"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
 ```
 
 ```bash
@@ -111,9 +124,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ```bash
@@ -133,7 +146,7 @@ kubectl get deployment -l app.kubernetes.io/name=cloudflared
 kubectl logs -l app.kubernetes.io/name=cloudflared
 ```
 
-### Step 5: Expose a Service
+### Step 5: Expose a Service (Recommended: Ingress)
 
 Deploy a sample application:
 
@@ -169,29 +182,59 @@ spec:
     - port: 80
 ```
 
-Create a TunnelBinding:
+Create `TunnelIngressClassConfig` and `IngressClass`:
 
 ```yaml
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: TunnelIngressClassConfig
 metadata:
-  name: hello-world-binding
+  name: cf-tunnel
   namespace: default
 spec:
-  subjects:
-    - kind: Service
-      name: hello-world
-      spec:
-        fqdn: hello.example.com
-        protocol: http
   tunnelRef:
     kind: Tunnel
     name: my-first-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-world
+  namespace: default
+spec:
+  ingressClassName: cf-tunnel
+  rules:
+    - host: hello.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-world
+                port:
+                  number: 80
 ```
 
 ```bash
-kubectl apply -f binding.yaml
+kubectl apply -f ingress.yaml
 ```
+
+`TunnelBinding` is deprecated and kept for backward compatibility only. For new setups, prefer Ingress or Gateway API.
 
 ### Step 6: Access Your Application
 
@@ -223,9 +266,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
   deployPatch: '{"spec":{"replicas":3}}'
 ```
 
@@ -241,9 +284,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
   deployPatch: |
     {
       "spec": {
@@ -279,17 +322,17 @@ spec:
   newTunnel:
     name: shared-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials  # Must be in cloudflare-operator-system namespace
+    credentialsRef:
+      name: default
   deployPatch: '{"spec":{"replicas":2}}'
 ```
 
-> **Note:** For ClusterTunnel and other cluster-scoped resources, the secret must be in the `cloudflare-operator-system` namespace.
+> **Note:** For ClusterTunnel and other cluster-scoped resources, use a cluster-scoped `CloudflareCredentials`. Its referenced Secret should be in `cloudflare-operator-system`.
 
 ## What's Next?
 
 - [Configure API Token Permissions](configuration.md)
-- [Enable Private Network Access](guides/private-network.md)
-- [Add Zero Trust Authentication](guides/zero-trust.md)
+- [Enable Private Network Access](api-reference/networkroute.md)
+- [Add Zero Trust Authentication](api-reference/accessapplication.md)
 - [View All Examples](../../examples/)

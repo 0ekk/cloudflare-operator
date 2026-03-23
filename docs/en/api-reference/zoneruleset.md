@@ -36,8 +36,6 @@ spec:
   name: "WAF Rules"
   kind: "waf"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ```

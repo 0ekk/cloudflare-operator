@@ -142,9 +142,8 @@ spec:
   purgeBuildCache: false
 
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Spec 字段
@@ -158,6 +157,8 @@ spec:
 | `cloudflare` | object | 是 | Cloudflare 账户和凭证 |
 
 *新格式必需。旧字段仍然支持以保持向后兼容。
+
+当设置 `cloudflare.credentialsRef` 时，示例中可以省略 `accountId`。
 
 ### 源类型
 
@@ -281,9 +282,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 部署特定提交
@@ -303,9 +303,8 @@ spec:
       branch: main
       commitSha: "abc123def456789"  # 部署此特定提交
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 从特性分支部署预览
@@ -324,9 +323,8 @@ spec:
     git:
       branch: feature/new-feature
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ---
@@ -387,9 +385,8 @@ spec:
         type: tar.gz
         stripComponents: 1
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### HTTP 源配置
@@ -429,9 +426,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### S3 源配置
@@ -518,9 +514,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### OCI 凭证 Secret
@@ -641,9 +636,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **工作原理**：
@@ -712,9 +706,8 @@ spec:
   rollback:
     strategy: LastSuccessful
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### ByVersion 策略
@@ -734,9 +727,8 @@ spec:
     strategy: ByVersion
     version: 5
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### ExactDeploymentID 策略
@@ -756,9 +748,8 @@ spec:
     strategy: ExactDeploymentID
     deploymentId: "abc123def456"
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 部署历史
@@ -775,9 +766,8 @@ spec:
   productionBranch: main
   deploymentHistoryLimit: 100  # 最大值：200（FIFO 保留）
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **历史配置**：
@@ -831,9 +821,8 @@ spec:
   action: create           # 已废弃
   branch: main             # 已废弃
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 新格式（推荐）
@@ -853,9 +842,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 自动转换
@@ -906,9 +894,8 @@ spec:
   adoptionPolicy: MustExist  # 要求项目必须存在
   deploymentHistoryLimit: 20
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 导入后：
@@ -934,9 +921,8 @@ spec:
     buildCommand: npm run build
     destinationDir: dist
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 原始配置
@@ -980,9 +966,8 @@ spec:
   productionBranch: main
   enableWebAnalytics: true  # 默认启用
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **行为**：
@@ -1018,9 +1003,8 @@ spec:
     name: my-app
   autoConfigureDNS: true  # 默认：true - Cloudflare 自动配置 DNS
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **DNS 配置模式**：
@@ -1049,9 +1033,8 @@ spec:
     name: my-app
   autoConfigureDNS: false  # DNS 由外部管理
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 对于手动 DNS，创建指向 Pages 子域的 CNAME 记录：
@@ -1135,7 +1118,7 @@ jobs:
             cloudflare:
               accountId: "${{ secrets.CF_ACCOUNT_ID }}"
               credentialsRef:
-                name: cloudflare-credentials
+                name: default
           EOF
 ```
 

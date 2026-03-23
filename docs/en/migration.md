@@ -29,21 +29,13 @@ No breaking changes. The following fields are the same:
 - `spec.size`
 - `spec.image`
 
-### TunnelBinding
+### TunnelBinding (Deprecated)
 
-The `v1alpha1` TunnelBinding uses a different API group (`networking.cfargotunnel.com`) and is maintained for backwards compatibility.
+`TunnelBinding` is kept for backward compatibility only.
 
-**v1alpha1** (legacy):
-```yaml
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-```
-
-**v1alpha2** (recommended):
-```yaml
-apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: TunnelBinding
-```
+- Legacy API group: `networking.cfargotunnel.com/v1alpha1`
+- Compatibility API group: `networking.cloudflare-operator.io/v1alpha2`
+- Recommended path for new setups: use Ingress (`TunnelIngressClassConfig`) or Gateway API (`TunnelGatewayClassConfig`)
 
 ### Status Conditions
 
@@ -59,14 +51,14 @@ v1alpha2 uses standard Kubernetes condition types:
 
 ### Step 1: Update Operator
 
-Ensure you're running the latest operator version:
+Ensure you're running the currently available GitHub Release version (for example, this may be `v0.0.1`):
 
 ```bash
 # Update CRDs first
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
 
 # Then update operator
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
 ```
 
 ### Step 2: Verify Conversion Webhook
@@ -101,19 +93,29 @@ apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: Tunnel
 ```
 
-### Step 5: Update TunnelBinding (Optional)
+### Step 5: Migrate to Ingress/Gateway API (Recommended)
 
-If using the legacy TunnelBinding API group, consider migrating:
+For new deployments, use Ingress or Gateway API instead of TunnelBinding.
 
 ```yaml
-# Before (legacy)
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
-
-# After (recommended)
-apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: TunnelBinding
+# Recommended IngressClass parameters
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
 ```
+
+If you still run TunnelBinding, migrate the legacy API group to `networking.cloudflare-operator.io/v1alpha2` first, then move to Ingress/Gateway API.
+
+For detailed steps, see [TunnelBinding Migration Guide](migration/tunnelbinding-migration.md).
 
 ## Rollback
 

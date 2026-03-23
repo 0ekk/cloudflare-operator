@@ -72,7 +72,6 @@ spec:
     name: api-service-creds
     namespace: production
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
     clientIdKey: WORKER_CLIENT_ID
     clientSecretKey: WORKER_CLIENT_SECRET
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -112,7 +110,6 @@ spec:
     name: cicd-cf-credentials
     namespace: ci-cd
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---

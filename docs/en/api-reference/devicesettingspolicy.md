@@ -35,7 +35,6 @@ spec:
   settings:
     splitTunneling: "enabled"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

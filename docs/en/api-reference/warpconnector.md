@@ -100,7 +100,6 @@ spec:
     - network: "10.0.0.0/8"
       comment: "Internal network"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -132,7 +131,6 @@ spec:
       cpu: "1000m"
       memory: "512Mi"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -166,7 +164,6 @@ spec:
       cpu: "2000m"
       memory: "1Gi"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

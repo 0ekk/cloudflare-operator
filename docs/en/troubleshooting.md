@@ -35,6 +35,55 @@ kubectl describe tunnel <name>
 
 ## Common Issues
 
+### Ingress Applied But Not Effective
+
+**Symptoms:**
+- Ingress exists but no route is published in Cloudflare Tunnel
+- Operator keeps reconciling without creating/updating expected route
+
+**Diagnostic Steps:**
+
+```bash
+# Check Ingress and IngressClass
+kubectl get ingress <name> -n <namespace> -o yaml
+kubectl get ingressclass <name> -o yaml
+
+# Check TunnelIngressClassConfig
+kubectl get tunnelingressclassconfig <name> -o yaml
+
+# Filter operator logs
+kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-controller-manager | \
+  grep -E "IngressClass|TunnelIngressClassConfig|resolve zone|CNAME|1056"
+```
+
+**Common Causes:**
+
+1. **Invalid IngressClass parameters**
+   - Error: `spec.parameters.namespace: Forbidden: parameters.scope is set to 'Cluster'`
+   - Fix:
+     - If using `scope: Cluster`, remove `parameters.namespace`
+     - For `TunnelIngressClassConfig` (namespaced), use `scope: Namespace` and set `parameters.namespace`
+
+2. **Zone / credentials resolution failure**
+   - Error: `Failed to resolve zone and credentials`
+   - Fix:
+     - Verify `CloudflareCredentials` exists and is readable
+     - Verify `accountId` is correct
+     - Verify API token includes `Account:Cloudflare Tunnel:Edit` and zone-level DNS permissions
+     - Verify referenced domain is an active zone in the same account
+
+3. **Invalid CNAME content**
+   - Error: `Content for CNAME record is invalid. (9007)`
+   - Fix:
+     - Ensure hostname is a valid FQDN (no scheme/path, no wildcard in wrong field)
+     - Ensure generated target is a valid tunnel hostname
+     - Verify the host belongs to the configured Cloudflare zone
+
+4. **Tunnel config rejected due to empty ingress rules**
+   - Error: `The config file doesn't contain any ingress rules (1056)`
+   - This usually appears when all app routes are removed.
+   - Fix: upgrade to a build that always keeps a fallback rule (`http_status:404`) when syncing tunnel config.
+
 ### Tunnel Not Connecting
 
 **Symptoms:**
@@ -79,14 +128,18 @@ kubectl logs -l app.kubernetes.io/name=cloudflared
 ### DNS Records Not Created
 
 **Symptoms:**
-- TunnelBinding shows success but DNS not resolving
+- Ingress exists but DNS is not resolving
 - No CNAME record in Cloudflare Dashboard
 
 **Diagnostic Steps:**
 
 ```bash
-# Check TunnelBinding status
-kubectl describe tunnelbinding <name>
+# Check Ingress and IngressClass
+kubectl get ingress <name> -n <namespace> -o yaml
+kubectl get ingressclass <name> -o yaml
+
+# Check TunnelIngressClassConfig
+kubectl get tunnelingressclassconfig <name> -n <namespace> -o yaml
 
 # Check operator logs for DNS errors
 kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-controller-manager | grep -i dns
@@ -102,6 +155,12 @@ kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-contro
 
 3. **Zone Not Found**
    - Domain must be active in your Cloudflare account
+
+4. **Legacy TunnelBinding Path**
+   - If you still use TunnelBinding, check it explicitly:
+   ```bash
+   kubectl describe tunnelbinding <name>
+   ```
 
 ### Network Route Not Working
 
@@ -209,6 +268,17 @@ kubectl describe <resource> <name>
 - Token missing required permissions
 - Check [Permission Matrix](configuration.md#permission-matrix)
 
+### "Failed to resolve zone and credentials"
+
+- Credential reference is wrong, not found, or in the wrong namespace
+- Domain does not match an active Cloudflare zone in the token's account
+- Token lacks required account or zone permissions
+
+### "Content for CNAME record is invalid. (9007)"
+
+- The DNS record target is not a valid CNAME target
+- Hostname/zone mismatch in Ingress/Tunnel config
+
 ## Getting Help
 
 If issues persist:
@@ -219,7 +289,7 @@ If issues persist:
    ```
 
 2. **Check GitHub Issues**
-   - Search [existing issues](https://github.com/StringKe/cloudflare-operator/issues)
+   - Search [existing issues](https://github.com/0ekk/cloudflare-operator/issues)
 
 3. **Open New Issue**
    - Include operator version

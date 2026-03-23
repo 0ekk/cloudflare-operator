@@ -13,7 +13,7 @@ The scope determines where the operator looks for Cloudflare API credentials (Se
 
 ## CRD Scope Reference
 
-### Cluster-Scoped CRDs (13)
+### Cluster-Scoped CRDs (11)
 
 These resources are not bound to any namespace. Secrets must be in the **operator namespace** (`cloudflare-operator-system`).
 
@@ -23,7 +23,6 @@ These resources are not bound to any namespace. Secrets must be in the **operato
 | ClusterTunnel | Tunnel | Cluster-wide Cloudflare Tunnel |
 | VirtualNetwork | Network | Traffic isolation virtual network |
 | NetworkRoute | Network | CIDR routing through tunnel |
-| WARPConnector | Network | WARP connector for site-to-site |
 | AccessGroup | Access | Reusable access policy group |
 | AccessIdentityProvider | Access | Identity provider configuration |
 | GatewayRule | Gateway | DNS/HTTP/L4 policy rule |
@@ -31,22 +30,23 @@ These resources are not bound to any namespace. Secrets must be in the **operato
 | GatewayConfiguration | Gateway | Global gateway settings |
 | DeviceSettingsPolicy | Device | WARP client configuration |
 | DevicePostureRule | Device | Device health check rule |
-| TunnelGatewayClassConfig | K8s Integration | Gateway API integration config |
 
-### Namespaced CRDs (8)
+### Namespaced CRDs (10)
 
 These resources exist within a specific namespace. Secrets must be in the **same namespace** as the resource.
 
 | CRD | Category | Description |
 |-----|----------|-------------|
 | Tunnel | Tunnel | Namespace-scoped Cloudflare Tunnel |
-| TunnelBinding | Tunnel | Bind Services to Tunnels with DNS |
+| TunnelBinding (Deprecated) | Tunnel | Legacy Service-to-Tunnel binding |
+| WARPConnector | Network | WARP connector for site-to-site |
 | AccessApplication | Access | Zero Trust application |
 | AccessServiceToken | Access | M2M authentication token |
 | AccessTunnel | Access | Access-protected tunnel endpoint |
 | PrivateService | Network | Private IP service exposure |
 | DNSRecord | DNS | DNS record management |
 | TunnelIngressClassConfig | K8s Integration | Ingress integration config |
+| TunnelGatewayClassConfig | K8s Integration | Gateway API integration config |
 
 ## Secret Lookup Rules
 
@@ -112,9 +112,10 @@ stringData:
   CLOUDFLARE_API_TOKEN: "your-token"
 ```
 
-### Rule 3: TunnelBinding Special Case
+### Rule 3: TunnelBinding (Deprecated) Special Case
 
 `TunnelBinding` is namespaced but can reference either a `Tunnel` (namespaced) or `ClusterTunnel` (cluster-scoped).
+Use this for legacy workloads only. New workloads should use Ingress or Gateway API.
 
 **Referencing a Tunnel (same namespace):**
 
@@ -164,14 +165,14 @@ flowchart TB
     subgraph ProdNS["production namespace"]
         ProdSecret["Secret: cloudflare-credentials"]
         Tunnel["Tunnel"]
-        TB["TunnelBinding"]
+        TB["TunnelBinding (Legacy)"]
         AA["AccessApplication"]
     end
 
     subgraph DevNS["development namespace"]
         DevSecret["Secret: cloudflare-credentials"]
         DevTunnel["Tunnel"]
-        DevTB["TunnelBinding"]
+        DevTB["TunnelBinding (Legacy)"]
     end
 
     CT --> OpSecret
@@ -251,7 +252,7 @@ spec:
     domain: example.com
     secret: cloudflare-credentials
 ---
-# TunnelBinding in any namespace can reference it
+# Legacy TunnelBinding in any namespace can reference it
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelBinding
 metadata:
@@ -279,7 +280,7 @@ The operator's ClusterRole grants permissions to read Secrets across all namespa
 This is necessary because:
 - Namespaced resources need Secrets in their namespace
 - Cluster-scoped resources need Secrets in the operator namespace
-- TunnelBinding may reference ClusterTunnel credentials
+- Legacy TunnelBinding may reference ClusterTunnel credentials
 
 ## Troubleshooting
 
@@ -303,7 +304,7 @@ This is necessary because:
 
 **Solution**: Ensure the operator ServiceAccount has permissions to read Secrets in the target namespace.
 
-### TunnelBinding Can't Find Tunnel
+### TunnelBinding (Deprecated) Can't Find Tunnel
 
 **Error**: `Tunnel "my-tunnel" not found`
 
@@ -319,7 +320,7 @@ This is necessary because:
 |---------------|-----------------|-------------------|
 | Tunnel | Same as resource | `production` |
 | ClusterTunnel | Operator namespace | `cloudflare-operator-system` |
-| TunnelBinding | Same as resource | `production` |
+| TunnelBinding (Deprecated) | Same as resource | `production` |
 | VirtualNetwork | Operator namespace | `cloudflare-operator-system` |
 | NetworkRoute | Operator namespace | `cloudflare-operator-system` |
 | AccessApplication | Same as resource | `production` |

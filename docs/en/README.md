@@ -106,7 +106,7 @@ flowchart TB
 |-----|-------|-------------|
 | `Tunnel` | Namespaced | Cloudflare Tunnel with managed cloudflared |
 | `ClusterTunnel` | Cluster | Cluster-wide Cloudflare Tunnel |
-| `TunnelBinding` | Namespaced | Bind Services to Tunnels with DNS |
+| `TunnelBinding` (Deprecated) | Namespaced | Legacy Service-to-Tunnel binding |
 
 ### Private Network
 
@@ -189,8 +189,8 @@ flowchart TB
 
 | CRD | Scope | Description |
 |-----|-------|-------------|
-| `TunnelIngressClassConfig` | Cluster | Configuration for Ingress integration |
-| `TunnelGatewayClassConfig` | Cluster | Configuration for Gateway API integration |
+| `TunnelIngressClassConfig` | Namespaced | Configuration for Ingress integration |
+| `TunnelGatewayClassConfig` | Namespaced | Configuration for Gateway API integration |
 
 > **Note**: The operator also supports native Kubernetes `Ingress` and Gateway API (`Gateway`, `HTTPRoute`, `TCPRoute`, `UDPRoute`) resources when configured with the appropriate IngressClass or GatewayClass.
 
@@ -208,18 +208,16 @@ See [Namespace Restrictions](namespace-restrictions.md) for detailed information
 ## Getting Help
 
 - **Examples**: See [/examples](../../examples/) for practical usage
-- **Issues**: [GitHub Issues](https://github.com/StringKe/cloudflare-operator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/StringKe/cloudflare-operator/discussions)
+- **Issues**: [GitHub Issues](https://github.com/0ekk/cloudflare-operator/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/0ekk/cloudflare-operator/discussions)
 
 ## Version Information
 
-- Current Version: v0.34.x (Alpha)
-- API Version: `networking.cloudflare-operator.io/v1alpha2`
-- Kubernetes: v1.28+
-- Go: 1.25
-- controller-runtime: v0.22
-- cloudflare-go SDK: v0.116.0
-- gateway-api: v1.4.1
+- Latest release: see [GitHub Releases](https://github.com/0ekk/cloudflare-operator/releases)
+- API version: `networking.cloudflare-operator.io/v1alpha2`
+- Kubernetes support: v1.28+
+
+The specific dependency versions in this project evolve frequently. Prefer release notes and `go.mod` for exact version details.
 
 ## Recent Changes
 

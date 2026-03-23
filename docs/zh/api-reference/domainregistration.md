@@ -1,6 +1,6 @@
 # DomainRegistration
 
-DomainRegistration 是一个集群作用域的资源，用于使用 Cloudflare 管理域名注册（仅限企业）。
+DomainRegistration 是一个集群级资源，用于使用 Cloudflare 管理域名注册（仅限企业）。
 
 ## 概述
 
@@ -31,7 +31,6 @@ metadata:
 spec:
   domain: "example.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

@@ -1,6 +1,6 @@
 # AccessApplication
 
-AccessApplication 是一个集群级资源，表示 Cloudflare Access 应用。它通过 Zero Trust 认证保护 Web 应用、SSH 端点、VNC 和其他资源。
+AccessApplication 是一个命名空间级资源，表示 Cloudflare Access 应用。它通过 Zero Trust 认证保护 Web 应用、SSH 端点、VNC 和其他资源。
 
 ## 概述
 
@@ -187,9 +187,8 @@ spec:
       precedence: 1
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 使用内联邮箱规则的应用
@@ -216,9 +215,8 @@ spec:
             email: "contractor@example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 使用 Require 规则的应用（多条件）
@@ -246,9 +244,8 @@ spec:
             country: ["US"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 公开 API（绕过认证）
@@ -271,9 +268,8 @@ spec:
         - everyone: {}
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 服务令牌访问（M2M）
@@ -302,9 +298,8 @@ spec:
             domain: "example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## 相关资源

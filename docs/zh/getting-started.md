@@ -19,7 +19,7 @@
 
 ```bash
 # 一键安装：CRDs + Namespace + RBAC + Operator
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
 ```
 
 ### 方式 B：模块化安装（推荐生产环境使用）
@@ -28,13 +28,13 @@ kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest
 
 ```bash
 # 步骤 1：安装 CRD（需要 cluster-admin 权限）
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
 
 # 步骤 2：创建命名空间
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
 
 # 步骤 3：安装 Operator（RBAC + Deployment）
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
 ```
 
 ### 可用安装文件
@@ -76,17 +76,30 @@ tunnels.networking.cloudflare-operator.io                         2024-01-01T00:
    - `Account:Cloudflare Tunnel:Edit`
    - `Zone:DNS:Edit`（针对你的域名）
 
-3. 创建 Kubernetes Secret：
+3. 创建 Kubernetes Secret 和 CloudflareCredentials：
 
 ```yaml
+# secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
-  namespace: default
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "<your-api-token>"
+---
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "<your-account-id>"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
 ```
 
 ```bash
@@ -111,9 +124,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ```bash
@@ -133,7 +146,7 @@ kubectl get deployment -l app.kubernetes.io/name=cloudflared
 kubectl logs -l app.kubernetes.io/name=cloudflared
 ```
 
-### 步骤 5：暴露服务
+### 步骤 5：暴露服务（推荐：Ingress）
 
 部署示例应用：
 
@@ -169,29 +182,59 @@ spec:
     - port: 80
 ```
 
-创建 TunnelBinding：
+创建 `TunnelIngressClassConfig` 和 `IngressClass`：
 
 ```yaml
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: TunnelIngressClassConfig
 metadata:
-  name: hello-world-binding
+  name: cf-tunnel
   namespace: default
 spec:
-  subjects:
-    - kind: Service
-      name: hello-world
-      spec:
-        fqdn: hello.example.com
-        protocol: http
   tunnelRef:
     kind: Tunnel
     name: my-first-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-world
+  namespace: default
+spec:
+  ingressClassName: cf-tunnel
+  rules:
+    - host: hello.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-world
+                port:
+                  number: 80
 ```
 
 ```bash
-kubectl apply -f binding.yaml
+kubectl apply -f ingress.yaml
 ```
+
+`TunnelBinding` 已弃用，仅为向后兼容保留。新部署建议优先使用 Ingress 或 Gateway API。
 
 ### 步骤 6：访问应用
 
@@ -223,9 +266,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
   deployPatch: '{"spec":{"replicas":3}}'
 ```
 
@@ -241,9 +284,9 @@ spec:
   newTunnel:
     name: my-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
   deployPatch: |
     {
       "spec": {
@@ -268,7 +311,7 @@ spec:
 
 ### 使用 ClusterTunnel
 
-对于集群范围的隧道（可从任何命名空间访问），使用 ClusterTunnel：
+对于集群级隧道（可从任何命名空间访问），使用 ClusterTunnel：
 
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
@@ -279,17 +322,17 @@ spec:
   newTunnel:
     name: shared-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials  # 必须在 cloudflare-operator-system 命名空间
+    credentialsRef:
+      name: default
   deployPatch: '{"spec":{"replicas":2}}'
 ```
 
-> **注意：** 对于 ClusterTunnel 和其他集群范围的资源，Secret 必须位于 `cloudflare-operator-system` 命名空间。
+> **注意：** 对于 ClusterTunnel 和其他集群级资源，请使用集群级 `CloudflareCredentials`。其引用的 Secret 建议位于 `cloudflare-operator-system` 命名空间。
 
 ## 下一步
 
 - [配置 API Token 权限](configuration.md)
-- [启用私有网络访问](guides/private-network.md)
-- [添加 Zero Trust 认证](guides/zero-trust.md)
+- [启用私有网络访问](api-reference/networkroute.md)
+- [添加 Zero Trust 认证](api-reference/accessapplication.md)
 - [查看所有示例](../../examples/)

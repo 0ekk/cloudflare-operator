@@ -1,10 +1,10 @@
 # R2Bucket
 
-R2Bucket 是一个命名空间作用域的资源，用于创建和管理具有生命周期规则和配置的 Cloudflare R2 对象存储桶。
+R2Bucket 是一个命名空间级资源，用于创建和管理具有生命周期规则和配置的 Cloudflare R2 对象存储桶。
 
 ## 概述
 
-R2Bucket 从 Kubernetes 直接创建和管理 Cloudflare R2 对象存储桶。R2 是 Cloudflare 的 S3 兼容对象存储服务。操作员处理桶的创建、配置，并可以应用生命周期规则来自动管理对象保留和过期。
+R2Bucket 从 Kubernetes 直接创建和管理 Cloudflare R2 对象存储桶。R2 是 Cloudflare 的 S3 兼容对象存储服务。Operator 处理桶的创建、配置，并可以应用生命周期规则来自动管理对象保留和过期。
 
 ### 主要特性
 
@@ -68,7 +68,6 @@ metadata:
 spec:
   bucketName: "app-storage-prod"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
       prefix: "data/"
       expiration: 365
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -122,7 +120,6 @@ spec:
       prefix: "yearly/"
       expiration: 2555
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

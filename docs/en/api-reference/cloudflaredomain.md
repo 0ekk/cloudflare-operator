@@ -34,7 +34,6 @@ metadata:
 spec:
   domain: "example.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

@@ -72,7 +72,6 @@ spec:
         groups:
           - "employees"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -103,7 +102,6 @@ spec:
   sessionDuration: "8h"
   isolationRequired: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -127,7 +125,6 @@ spec:
   approvalGroups:
     - name: "database-admins"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

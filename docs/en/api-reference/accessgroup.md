@@ -105,9 +105,8 @@ spec:
         domain: "example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Department with Geographic Restriction
@@ -127,9 +126,8 @@ spec:
         country: ["US"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Exclude Contractors
@@ -151,9 +149,8 @@ spec:
         email: "temp-worker@example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### MFA Required Group
@@ -173,9 +170,8 @@ spec:
         authMethod: "mfa"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Service Token Group (Machine-to-Machine)
@@ -191,9 +187,8 @@ spec:
     - anyValidServiceToken: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Multiple Conditions (Advanced)
@@ -224,9 +219,8 @@ spec:
         ip: ["10.0.0.0/8", "192.168.0.0/16"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### GitHub Organization Members
@@ -247,9 +241,8 @@ spec:
           - "platform"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Okta Group with Device Posture
@@ -270,9 +263,8 @@ spec:
         integrationUid: "<posture-check-uid>"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## Access Group Flow Diagram

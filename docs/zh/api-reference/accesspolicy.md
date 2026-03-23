@@ -1,6 +1,6 @@
 # AccessPolicy
 
-AccessPolicy 是一个集群作用域的资源，定义可重用的 Cloudflare Access 策略以根据身份、设备和上下文控制应用程序访问。
+AccessPolicy 是一个集群级资源，定义可重用的 Cloudflare Access 策略以根据身份、设备和上下文控制应用程序访问。
 
 ## 概述
 
@@ -72,7 +72,6 @@ spec:
         groups:
           - "employees"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -103,7 +102,6 @@ spec:
   sessionDuration: "8h"
   isolationRequired: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -127,7 +125,6 @@ spec:
   approvalGroups:
     - name: "database-admins"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

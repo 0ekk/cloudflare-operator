@@ -36,8 +36,6 @@ spec:
   name: "Add Security Headers"
   pattern: "*example.com/*"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ```

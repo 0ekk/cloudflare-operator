@@ -1,10 +1,10 @@
 # AccessServiceToken
 
-AccessServiceToken 是一个命名空间作用域的资源，为不需要人工交互的机器对机器身份验证创建和管理 Cloudflare Access 服务令牌。
+AccessServiceToken 是一个命名空间级资源，为不需要人工交互的机器对机器身份验证创建和管理 Cloudflare Access 服务令牌。
 
 ## 概述
 
-服务令牌为不交互式（机器对机器）身份验证提供长期凭证以访问受保护的 Cloudflare Zero Trust 应用程序。与用户身份验证不同，服务令牌对需要编程式访问的应用程序或服务进行身份验证。操作员会自动在 Cloudflare 中创建令牌并将凭证存储在 Kubernetes Secret 中。
+服务令牌为不交互式（机器对机器）身份验证提供长期凭证以访问受保护的 Cloudflare Zero Trust 应用程序。与用户身份验证不同，服务令牌对需要编程式访问的应用程序或服务进行身份验证。Operator 会自动在 Cloudflare 中创建令牌并将凭证存储在 Kubernetes Secret 中。
 
 ### 主要特性
 
@@ -72,7 +72,6 @@ spec:
     name: api-service-creds
     namespace: production
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
     clientIdKey: WORKER_CLIENT_ID
     clientSecretKey: WORKER_CLIENT_SECRET
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -112,7 +110,6 @@ spec:
     name: cicd-cf-credentials
     namespace: ci-cd
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -149,7 +146,7 @@ data:
 
 - [AccessApplication](accessapplication.md) - 此令牌可以访问的应用程序
 - [AccessPolicy](accesspolicy.md) - 控制令牌访问的策略
-- [CloudflareCredentials](cloudflarecredentials.md) - 操作员的 API 凭证
+- [CloudflareCredentials](cloudflarecredentials.md) - Operator 的 API 凭证
 
 ## 另请参阅
 

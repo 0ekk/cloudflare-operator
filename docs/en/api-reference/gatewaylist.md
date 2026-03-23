@@ -38,7 +38,6 @@ spec:
     - "malware.com"
     - "phishing.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

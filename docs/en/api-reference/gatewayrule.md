@@ -37,7 +37,6 @@ spec:
   action: "block"
   priority: 10
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

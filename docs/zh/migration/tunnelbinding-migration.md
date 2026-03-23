@@ -2,6 +2,14 @@
 
 本指南说明如何从已废弃的 `TunnelBinding` 资源迁移到推荐的替代方案：使用 `TunnelIngressClassConfig` 的 Kubernetes Ingress 或 Gateway API。
 
+## 迁移目标
+
+迁移完成后的目标状态是：生产流量不再依赖 `TunnelBinding`。
+
+- 新路由由 Ingress 或 Gateway API 管理
+- 现有 `TunnelBinding` 在验证通过后删除
+- 新路径下的 DNS 和 Cloudflare Tunnel Published application routes 已确认
+
 ## 为什么要迁移？
 
 `TunnelBinding` 已废弃，原因如下：
@@ -41,7 +49,7 @@
 
 ```bash
 # 下载迁移脚本
-curl -O https://raw.githubusercontent.com/StringKe/cloudflare-operator/main/scripts/migrate-tunnelbinding.sh
+curl -O https://raw.githubusercontent.com/0ekk/cloudflare-operator/main/scripts/migrate-tunnelbinding.sh
 chmod +x migrate-tunnelbinding.sh
 
 # 运行迁移（默认为 dry-run 模式）
@@ -77,6 +85,7 @@ apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelIngressClassConfig
 metadata:
   name: my-tunnel-ingress
+  namespace: default
 spec:
   tunnelRef:
     kind: ClusterTunnel  # 或 Tunnel
@@ -93,12 +102,16 @@ kind: IngressClass
 metadata:
   name: my-tunnel-ingress
 spec:
-  controller: cloudflare-operator.io/tunnel-ingress-controller
+  controller: cloudflare-operator.io/ingress-controller
   parameters:
     apiGroup: networking.cloudflare-operator.io
     kind: TunnelIngressClassConfig
     name: my-tunnel-ingress
+    scope: Namespace
+    namespace: default
 ```
+
+`TunnelIngressClassConfig` 是命名空间作用域资源。IngressClass 的 parameters 建议使用 `scope: Namespace`，并将 `parameters.namespace` 设置为 TunnelIngressClassConfig 所在命名空间。
 
 ### 步骤 4：将 TunnelBinding Subjects 转换为 Ingress
 
@@ -168,6 +181,8 @@ spec:
    kubectl delete tunnelbinding <name> -n <namespace>
    ```
 
+完成该步骤后，不建议再为生产流量创建新的 TunnelBinding 资源。
+
 ## Origin Request 配置映射
 
 下表将 TunnelBinding spec 字段映射到 Ingress 注解：
@@ -193,6 +208,7 @@ apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelGatewayClassConfig
 metadata:
   name: my-tunnel-gateway
+  namespace: default
 spec:
   tunnelRef:
     kind: ClusterTunnel
@@ -208,11 +224,12 @@ kind: GatewayClass
 metadata:
   name: cloudflare-tunnel
 spec:
-  controllerName: cloudflare-operator.io/tunnel-gateway-controller
+  controllerName: cloudflare-operator.io/gateway-controller
   parametersRef:
     group: networking.cloudflare-operator.io
     kind: TunnelGatewayClassConfig
     name: my-tunnel-gateway
+    namespace: default
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -319,3 +336,15 @@ spec:
 
 **问：Access Applications 怎么办？**
 答：Access Applications 与 TunnelBinding 和 Ingress 都能配合使用。Access 配置不需要修改。
+
+## 迁移完成检查清单
+
+在认定迁移完成前，请确认以下事项：
+
+- 没有生产主机名仍依赖 TunnelBinding
+- 目标主机名均已通过 Ingress 或 Gateway API 提供服务
+- `TunnelIngressClassConfig`/`TunnelGatewayClassConfig` 状态健康
+- 所需 DNS 记录存在且解析到预期目标
+- Cloudflare Tunnel 中已存在对应 Published application routes
+- Access 策略与认证行为符合预期
+- 旧 TunnelBinding 资源已删除（若临时保留，已在文档中明确记录）

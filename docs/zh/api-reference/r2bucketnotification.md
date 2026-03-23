@@ -1,6 +1,6 @@
 # R2BucketNotification
 
-R2BucketNotification 是一个命名空间作用域的资源，用于为 Cloudflare R2 桶配置事件通知。
+R2BucketNotification 是一个命名空间级资源，用于为 Cloudflare R2 桶配置事件通知。
 
 ## 概述
 
@@ -43,7 +43,6 @@ spec:
     - "object-created"
     - "object-deleted"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

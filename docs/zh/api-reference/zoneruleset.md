@@ -1,43 +1,45 @@
-# Uzoneruleset
+# ZoneRuleset
 
-zoneruleset 是集群作用域的资源（或命名空间作用域）。
+ZoneRuleset 是一个命名空间级资源，用于管理 Cloudflare 规则集（如 WAF、限速等安全能力）。
 
 ## 概述
 
-此资源管理 Cloudflare 中的相应功能。
+ZoneRuleset 允许你在 zone 级别配置 Cloudflare 托管规则集，包括 WAF 规则、限速策略以及其他安全功能。
 
 ### 主要特性
 
-- 功能管理
-- 配置控制
-- 规则应用
+- WAF 规则管理
+- 限速配置
+- 安全规则控制
+- 规则版本管理
 
 ## 规范
 
 | 字段 | 类型 | 必需 | 描述 |
 |------|------|------|------|
-|  | string | **是** | 资源名称 |
-|  | CloudflareDetails | **是** | API 凭证 |
+| `name` | string | **是** | 规则集名称 |
+| `kind` | string | **是** | 规则集类型（waf、rateLimit 等） |
+| `rules` | []Rule | 否 | 要应用的规则 |
+| `cloudflare` | CloudflareDetails | **是** | Cloudflare API 凭证 |
 
 ## 示例
 
+### 示例 1：WAF 规则集
+
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: Uzoneruleset
+kind: ZoneRuleset
 metadata:
-  name: example
+  name: waf-rules
+  namespace: production
 spec:
-  name: "Example"
+  name: "WAF Rules"
+  kind: "waf"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
 
-## 相关资源
-
-- 参考相关文档
-
 ## 另请参阅
 
-- Cloudflare 文档
+- [Cloudflare Rulesets](https://developers.cloudflare.com/ruleset-engine/)

@@ -629,8 +629,8 @@ spec:
 ## Related Resources
 
 - [Tunnel](tunnel.md) - Automatically create DNS records for tunnel endpoints
-- [Ingress Integration](../guides/ingress-integration.md) - Automatic DNS via Ingress annotations
-- [Gateway API](../guides/gateway-api-integration.md) - DNS management with Gateway API
+- [Ingress Integration](../migration/tunnelbinding-migration.md#step-3-create-ingressclass) - Automatic DNS via Ingress annotations
+- [Gateway API](../migration/tunnelbinding-migration.md#migration-path-2-tunnelbinding-to-gateway-api) - DNS management with Gateway API
 
 ## See Also
 

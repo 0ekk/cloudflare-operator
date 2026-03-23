@@ -106,7 +106,7 @@ flowchart TB
 |-----|--------|------|
 | `Tunnel` | Namespaced | 带托管 cloudflared 的 Cloudflare Tunnel |
 | `ClusterTunnel` | Cluster | 集群级 Cloudflare Tunnel |
-| `TunnelBinding` | Namespaced | 将服务绑定到隧道并配置 DNS |
+| `TunnelBinding`（已弃用） | Namespaced | 旧版服务到隧道绑定 |
 
 ### 私有网络
 
@@ -189,8 +189,8 @@ flowchart TB
 
 | CRD | 作用域 | 说明 |
 |-----|--------|------|
-| `TunnelIngressClassConfig` | Cluster | Ingress 集成配置 |
-| `TunnelGatewayClassConfig` | Cluster | Gateway API 集成配置 |
+| `TunnelIngressClassConfig` | Namespaced | Ingress 集成配置 |
+| `TunnelGatewayClassConfig` | Namespaced | Gateway API 集成配置 |
 
 > **说明**：Operator 还支持原生 Kubernetes `Ingress` 和 Gateway API（`Gateway`、`HTTPRoute`、`TCPRoute`、`UDPRoute`）资源，需配置相应的 IngressClass 或 GatewayClass。
 
@@ -208,18 +208,16 @@ Operator 根据 CRD 作用域使用不同的 Secret 查找规则：
 ## 获取帮助
 
 - **示例**：查看 [/examples](../../examples/) 获取实用示例
-- **问题**：[GitHub Issues](https://github.com/StringKe/cloudflare-operator/issues)
-- **讨论**：[GitHub Discussions](https://github.com/StringKe/cloudflare-operator/discussions)
+- **问题**：[GitHub Issues](https://github.com/0ekk/cloudflare-operator/issues)
+- **讨论**：[GitHub Discussions](https://github.com/0ekk/cloudflare-operator/discussions)
 
 ## 版本信息
 
-- 当前版本：v0.34.x (Alpha)
+- 最新版本：请查看 [GitHub Releases](https://github.com/0ekk/cloudflare-operator/releases)
 - API 版本：`networking.cloudflare-operator.io/v1alpha2`
-- Kubernetes：v1.28+
-- Go：1.25
-- controller-runtime：v0.22
-- cloudflare-go SDK：v0.116.0
-- gateway-api：v1.4.1
+- Kubernetes 支持：v1.28+
+
+项目依赖版本会持续演进。需要精确版本时，请以 release notes 和 `go.mod` 为准。
 
 ## 版本变更
 

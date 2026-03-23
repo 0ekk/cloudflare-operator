@@ -39,7 +39,6 @@ spec:
     name: my-app
   environment: "production"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

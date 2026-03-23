@@ -1,38 +1,64 @@
 # TunnelIngressClassConfig
 
-TunnelIngressClassConfig is a cluster-scoped resource that configures Kubernetes Ingress integration with Cloudflare Tunnels.
+TunnelIngressClassConfig is a namespaced resource that configures Kubernetes Ingress integration with Cloudflare Tunnels.
 
 ## Overview
 
-TunnelIngressClassConfig enables automatic DNS management when using Kubernetes Ingress resources with Cloudflare Tunnel.
+TunnelIngressClassConfig links an IngressClass to a Tunnel or ClusterTunnel and controls DNS/origin defaults for Ingress routes.
 
 ### Key Features
 
 - Ingress integration
 - Automatic DNS management
-- DNS TXT record management
+- Origin request defaults
 
 ## Spec
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `cloudflare` | CloudflareDetails | **Yes** | API credentials |
+| `tunnelRef` | TunnelReference | **Yes** | Target `Tunnel` or `ClusterTunnel` |
+| `defaultProtocol` | string | No | Default backend protocol (`http` by default) |
+| `defaultOriginRequest` | OriginRequestSpec | No | Default origin settings for backend connections |
+| `dnsManagement` | string | No | DNS mode: `Automatic`, `Manual`, `DNSRecord` |
+| `dnsProxied` | bool | No | Whether managed DNS records are proxied (default: `true`) |
+| `watchNamespaces` | []string | No | Limit watched Ingress namespaces (empty = all) |
 
 ## Examples
 
-### Example 1: Ingress Configuration
+### Example 1: TunnelIngressClassConfig
 
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelIngressClassConfig
 metadata:
-  name: tunnel-ingress-config
+  name: cf-tunnel
+  namespace: default
 spec:
-  cloudflare:
-    accountId: "1234567890abcdef"
-    credentialsRef:
-      name: production
+  tunnelRef:
+    kind: Tunnel
+    name: my-first-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
 ```
+
+### Example 2: IngressClass Parameters
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
+```
+
+`TunnelIngressClassConfig` is namespaced, so IngressClass parameters should normally use `scope: Namespace` and set `namespace`.
 
 ## See Also
 

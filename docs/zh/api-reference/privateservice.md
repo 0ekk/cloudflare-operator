@@ -1,10 +1,10 @@
 # PrivateService
 
-PrivateService 是一个命名空间作用域的资源，通过 Cloudflare Tunnel 和虚拟网络私自暴露 Kubernetes Service，使 WARP 客户端能够安全访问。
+PrivateService 是一个命名空间级资源，通过 Cloudflare Tunnel 和虚拟网络私有暴露 Kubernetes Service，使 WARP 客户端能够安全访问。
 
 ## 概述
 
-PrivateService 为 Kubernetes Service 创建私有网络路由，使其仅可通过 WARP 连接的客户端和 Cloudflare Tunnel 访问。PrivateService 不是向互联网暴露服务，而是与虚拟网络集成以提供对内部服务的安全、经过身份验证的访问。操作员会自动从服务的 ClusterIP 派生网络 CIDR。
+PrivateService 为 Kubernetes Service 创建私有网络路由，使其仅可通过 WARP 连接的客户端和 Cloudflare Tunnel 访问。PrivateService 不是向互联网暴露服务，而是与虚拟网络集成以提供对内部服务的安全、经过身份验证的访问。Operator 会自动从服务的 ClusterIP 派生网络 CIDR。
 
 ### 主要特性
 
@@ -106,7 +106,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -131,7 +130,6 @@ spec:
     name: db-network
   comment: "PostgreSQL private access"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -152,7 +150,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -169,7 +166,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

@@ -1,6 +1,6 @@
 # NetworkRoute
 
-NetworkRoute 是一个集群作用域的资源，定义通过 Cloudflare Tunnel 路由的 CIDR 范围，使 WARP 客户端能够访问私有网络。
+NetworkRoute 是一个集群级资源，定义通过 Cloudflare Tunnel 路由的 CIDR 范围，使 WARP 客户端能够访问私有网络。
 
 ## 概述
 
@@ -103,7 +103,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -122,7 +121,6 @@ spec:
     kind: ClusterTunnel
     name: tunnel-primary
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -137,7 +135,6 @@ spec:
     kind: ClusterTunnel
     name: tunnel-secondary
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -159,7 +156,6 @@ spec:
   virtualNetworkRef:
     name: tenant-a-vnet
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -179,7 +175,6 @@ spec:
     name: app-tunnel
     namespace: production
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

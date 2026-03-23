@@ -37,8 +37,6 @@ spec:
   destination: "https://example.com/$1"
   statusCode: 301
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ```

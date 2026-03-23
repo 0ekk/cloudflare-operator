@@ -1,6 +1,6 @@
 # PagesProject
 
-PagesProject is a namespace-scoped resource that represents a Cloudflare Pages project. Cloudflare Pages is a JAMstack platform for deploying static sites and full-stack applications with Workers integration.
+PagesProject is a namespaced resource that represents a Cloudflare Pages project. Cloudflare Pages is a JAMstack platform for deploying static sites and full-stack applications with Workers integration.
 
 ## Overview
 
@@ -347,9 +347,8 @@ spec:
     buildCaching: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Project with GitHub Integration
@@ -379,9 +378,8 @@ spec:
     buildCaching: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### GitOps Two-Stage Deployment
@@ -420,9 +418,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Declarative Versions with Template
@@ -457,9 +454,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Auto-Promote After Health Check
@@ -494,9 +490,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Track Latest Preview
@@ -525,9 +520,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### External System Control
@@ -558,9 +552,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Adopt Existing Project
@@ -582,9 +575,8 @@ spec:
   deletionPolicy: Orphan
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## Use Cases
@@ -645,7 +637,7 @@ deploymentConfigs:
 - [PagesDeployment](pagesdeployment.md) - Deploy specific versions to Cloudflare Pages
 - [PagesDomain](pagesdomain.md) - Configure custom domains for Pages projects
 - [R2Bucket](r2bucket.md) - Create R2 buckets for use with Pages
-- [CloudflareDomain](cloudflareadomain.md) - Configure DNS and SSL settings
+- [CloudflareDomain](cloudflaredomain.md) - Configure DNS and SSL settings
 
 ## See Also
 

@@ -1,6 +1,6 @@
 # PagesDomain
 
-PagesDomain 是一个命名空间作用域的资源，用于为 Cloudflare Pages 项目配置自定义域名。
+PagesDomain 是一个命名空间级资源，用于为 Cloudflare Pages 项目配置自定义域名。
 
 ## 概述
 
@@ -39,7 +39,6 @@ spec:
     name: my-app
   environment: "production"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

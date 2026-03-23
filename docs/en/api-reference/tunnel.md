@@ -111,6 +111,8 @@ Key fields:
 
 ## Examples
 
+Examples below use `cloudflare.credentialsRef` (recommended). Legacy inline fields like `accountId` and `secret` are still supported for backward compatibility.
+
 ### Basic New Tunnel
 
 ```yaml
@@ -124,9 +126,9 @@ spec:
     name: my-k8s-tunnel
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Use Existing Tunnel by ID
@@ -142,9 +144,9 @@ spec:
     id: "550e8400-e29b-41d4-a716-446655440000"
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Tunnel with WARP Routing Enabled
@@ -165,9 +167,9 @@ spec:
   enableWarpRouting: true
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Tunnel with Custom cloudflared Deployment
@@ -210,9 +212,9 @@ spec:
     }
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Tunnel with Custom Protocol
@@ -233,9 +235,9 @@ spec:
   protocol: http2
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Tunnel with Custom CA Pool
@@ -256,9 +258,9 @@ spec:
   originCaPool: custom-ca-certificates
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ---
 apiVersion: v1
 kind: Secret
@@ -323,8 +325,8 @@ stringData:
 
 - [ClusterTunnel](clustertunnel.md) - Cluster-scoped tunnel for multi-namespace use
 - [DNSRecord](dnsrecord.md) - Manage DNS records for tunnel endpoints
-- [Ingress](../guides/ingress-integration.md) - Use native Kubernetes Ingress with Tunnel
-- [Gateway API](../guides/gateway-api-integration.md) - Use Gateway API (HTTPRoute) with Tunnel
+- [Ingress](../migration/tunnelbinding-migration.md#step-3-create-ingressclass) - Use native Kubernetes Ingress with Tunnel
+- [Gateway API](../migration/tunnelbinding-migration.md#migration-path-2-tunnelbinding-to-gateway-api) - Use Gateway API (HTTPRoute) with Tunnel
 - [NetworkRoute](networkroute.md) - Route private IP ranges through tunnel (with WARP routing)
 - [VirtualNetwork](virtualnetwork.md) - Create virtual networks for private access
 

@@ -1,43 +1,45 @@
-# Ugatewayconfiguratio
+# GatewayConfiguration
 
-gatewayconfiguration 是集群作用域的资源（或命名空间作用域）。
+GatewayConfiguration 是一个集群级资源，用于配置全局 Cloudflare Gateway 设置。
 
 ## 概述
 
-此资源管理 Cloudflare 中的相应功能。
+GatewayConfiguration 管理账号级 Gateway 配置，包括日志、证书检查和全局策略。
 
 ### 主要特性
 
-- 功能管理
-- 配置控制
-- 规则应用
+- 全局 Gateway 设置
+- 日志配置
+- 策略默认值
+- 证书相关选项
 
 ## 规范
 
 | 字段 | 类型 | 必需 | 描述 |
 |------|------|------|------|
-|  | string | **是** | 资源名称 |
-|  | CloudflareDetails | **是** | API 凭证 |
+| `logging` | LoggingConfig | 否 | 日志设置 |
+| `inspection` | bool | 否 | 证书检查 |
+| `cloudflare` | CloudflareDetails | **是** | Cloudflare API 凭证 |
 
 ## 示例
 
+### 示例 1：开启 Gateway 日志
+
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: Ugatewayconfiguration
+kind: GatewayConfiguration
 metadata:
-  name: example
+  name: gateway-config
 spec:
-  name: "Example"
+  logging:
+    enabled: true
+    level: "standard"
+  inspection: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
 
-## 相关资源
-
-- 参考相关文档
-
 ## 另请参阅
 
-- Cloudflare 文档
+- [Cloudflare Gateway Configuration](https://developers.cloudflare.com/cloudflare-one/policies/gateway/)

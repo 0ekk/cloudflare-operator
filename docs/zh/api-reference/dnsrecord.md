@@ -629,8 +629,8 @@ spec:
 ## 相关资源
 
 - [Tunnel](tunnel.md) - 自动为隧道端点创建 DNS 记录
-- [Ingress 集成](../guides/ingress-integration.md) - 通过 Ingress 注解自动 DNS
-- [Gateway API](../guides/gateway-api-integration.md) - 使用 Gateway API 管理 DNS
+- [Ingress 集成](../migration/tunnelbinding-migration.md#步骤-3创建-ingressclass) - 通过 Ingress 注解自动 DNS
+- [Gateway API](../migration/tunnelbinding-migration.md#迁移路径-2tunnelbinding-到-gateway-api) - 使用 Gateway API 管理 DNS
 
 ## 另请参阅
 

@@ -2,6 +2,14 @@
 
 This guide explains how to migrate from the deprecated `TunnelBinding` resource to the recommended alternatives: Kubernetes Ingress with `TunnelIngressClassConfig` or Gateway API.
 
+## Migration Goal
+
+The target state is to stop relying on `TunnelBinding` for active traffic.
+
+- New routes are managed by Ingress or Gateway API
+- Existing `TunnelBinding` objects are removed after validation
+- DNS and published application routes are verified on the new path
+
 ## Why Migrate?
 
 `TunnelBinding` is deprecated for the following reasons:
@@ -41,7 +49,7 @@ We provide a migration script to help convert TunnelBinding resources:
 
 ```bash
 # Download the migration script
-curl -O https://raw.githubusercontent.com/StringKe/cloudflare-operator/main/scripts/migrate-tunnelbinding.sh
+curl -O https://raw.githubusercontent.com/0ekk/cloudflare-operator/main/scripts/migrate-tunnelbinding.sh
 chmod +x migrate-tunnelbinding.sh
 
 # Run migration (dry-run by default)
@@ -77,6 +85,7 @@ apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelIngressClassConfig
 metadata:
   name: my-tunnel-ingress
+  namespace: default
 spec:
   tunnelRef:
     kind: ClusterTunnel  # or Tunnel
@@ -93,12 +102,16 @@ kind: IngressClass
 metadata:
   name: my-tunnel-ingress
 spec:
-  controller: cloudflare-operator.io/tunnel-ingress-controller
+  controller: cloudflare-operator.io/ingress-controller
   parameters:
     apiGroup: networking.cloudflare-operator.io
     kind: TunnelIngressClassConfig
     name: my-tunnel-ingress
+    scope: Namespace
+    namespace: default
 ```
+
+`TunnelIngressClassConfig` is namespaced. For IngressClass parameters, use `scope: Namespace` and set `parameters.namespace` to the namespace where the TunnelIngressClassConfig exists.
 
 ### Step 4: Convert TunnelBinding Subjects to Ingress
 
@@ -168,6 +181,8 @@ spec:
    kubectl delete tunnelbinding <name> -n <namespace>
    ```
 
+After this step, do not create new TunnelBinding resources for production traffic.
+
 ## Origin Request Configuration Mapping
 
 The following table maps TunnelBinding spec fields to Ingress annotations:
@@ -193,6 +208,7 @@ apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelGatewayClassConfig
 metadata:
   name: my-tunnel-gateway
+  namespace: default
 spec:
   tunnelRef:
     kind: ClusterTunnel
@@ -208,11 +224,12 @@ kind: GatewayClass
 metadata:
   name: cloudflare-tunnel
 spec:
-  controllerName: cloudflare-operator.io/tunnel-gateway-controller
+  controllerName: cloudflare-operator.io/gateway-controller
   parametersRef:
     group: networking.cloudflare-operator.io
     kind: TunnelGatewayClassConfig
     name: my-tunnel-gateway
+    namespace: default
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -319,3 +336,15 @@ A:
 
 **Q: What about Access Applications?**
 A: Access Applications work with both TunnelBinding and Ingress. No changes needed for Access configuration.
+
+## Migration Completion Checklist
+
+Use this checklist before considering migration complete:
+
+- No active production hostname depends on TunnelBinding
+- All target hostnames are served via Ingress or Gateway API
+- `TunnelIngressClassConfig`/`TunnelGatewayClassConfig` status is healthy
+- Required DNS records exist and resolve to expected targets
+- Published application routes are present in Cloudflare Tunnel
+- Access policies and authentication still work as expected
+- Legacy TunnelBinding resources are deleted (or explicitly documented if temporarily retained)

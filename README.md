@@ -1,7 +1,7 @@
 <h1 align=center>Cloudflare Zero Trust Operator</h1>
 
 <div align="center">
-  <a href="https://github.com/StringKe/cloudflare-operator">
+  <a href="https://github.com/0ekk/cloudflare-operator">
     <img src="docs/images/CloudflareOperatorLogo.png" alt="Logo" height="250">
   </a>
   <br />
@@ -10,27 +10,27 @@
     A Kubernetes Operator for Cloudflare Zero Trust: Tunnels, Access, Gateway, Device, DNS, R2, and Rules Management
     <br />
     <br />
-    <a href="https://github.com/StringKe/cloudflare-operator/blob/main/docs/en/README.md"><strong>Documentation (English) »</strong></a>
+    <a href="https://github.com/0ekk/cloudflare-operator/blob/main/docs/en/README.md"><strong>Documentation (English) »</strong></a>
     |
-    <a href="https://github.com/StringKe/cloudflare-operator/blob/main/docs/zh/README.md"><strong>文档 (中文) »</strong></a>
+    <a href="https://github.com/0ekk/cloudflare-operator/blob/main/docs/zh/README.md"><strong>文档 (中文) »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/StringKe/cloudflare-operator/tree/main/examples">Examples</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/tree/main/examples">Examples</a>
     ·
-    <a href="https://github.com/StringKe/cloudflare-operator/issues">Report Bug</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/issues">Report Bug</a>
     ·
-    <a href="https://github.com/StringKe/cloudflare-operator/issues">Request Feature</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/issues">Request Feature</a>
   </p>
 </div>
 
 <div align="center">
 
-[![GitHub license](https://img.shields.io/github/license/StringKe/cloudflare-operator?color=brightgreen)](https://github.com/StringKe/cloudflare-operator/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/StringKe/cloudflare-operator)](https://github.com/StringKe/cloudflare-operator/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/StringKe/cloudflare-operator)](https://goreportcard.com/report/github.com/StringKe/cloudflare-operator)
-[![CI](https://github.com/StringKe/cloudflare-operator/actions/workflows/release.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/release.yml)
-[![Test](https://github.com/StringKe/cloudflare-operator/actions/workflows/test.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/test.yml)
-[![Lint](https://github.com/StringKe/cloudflare-operator/actions/workflows/lint.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/lint.yml)
+[![GitHub license](https://img.shields.io/github/license/0ekk/cloudflare-operator?color=brightgreen)](https://github.com/0ekk/cloudflare-operator/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/0ekk/cloudflare-operator)](https://github.com/0ekk/cloudflare-operator/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/0ekk/cloudflare-operator)](https://goreportcard.com/report/github.com/0ekk/cloudflare-operator)
+[![CI](https://github.com/0ekk/cloudflare-operator/actions/workflows/release.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/release.yml)
+[![Test](https://github.com/0ekk/cloudflare-operator/actions/workflows/test.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/test.yml)
+[![Lint](https://github.com/0ekk/cloudflare-operator/actions/workflows/lint.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/lint.yml)
 
 </div>
 
@@ -123,7 +123,7 @@ flowchart TB
 |---------|---------|
 | **Direct Status Writes** | Controllers write directly to CRD.Status, no intermediate layers |
 | **Independent Informers** | Each CRD has its own Controller + Informer, no event interference |
-| **ConfigMap Aggregation** | Tunnel config uses ConfigMap for multi-source aggregation (Ingress, TunnelBinding, etc.) |
+| **ConfigMap Aggregation** | Tunnel config uses ConfigMap for multi-source aggregation (Ingress, legacy TunnelBinding, etc.) |
 | **Hash Detection** | Skip sync when config unchanged, reducing API usage |
 | **Simple Data Flow** | L1 CRD → L2 Controller → L3 CF API, easy to trace and debug |
 
@@ -143,7 +143,7 @@ flowchart TB
 
 ```bash
 # All-in-one: CRDs + Namespace + RBAC + Operator (without webhook)
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
 
 # Verify installation
 kubectl get pods -n cloudflare-operator-system
@@ -153,13 +153,13 @@ kubectl get pods -n cloudflare-operator-system
 
 ```bash
 # Step 1: Install CRDs (cluster-admin required)
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
 
 # Step 2: Create namespace
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
 
 # Step 3: Install operator (RBAC + Deployment)
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
 
 # Verify installation
 kubectl get pods -n cloudflare-operator-system
@@ -184,41 +184,88 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "<your-api-token>"
 ---
-# 2. Create tunnel
+# 2. Create CloudflareCredentials
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "<your-account-id>"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
+---
+# 3. Create tunnel
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: Tunnel
 metadata:
   name: my-tunnel
+  namespace: default
 spec:
   newTunnel:
     name: k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Expose a Service
 
 ```yaml
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: TunnelIngressClassConfig
 metadata:
-  name: web-binding
-subjects:
-  - kind: Service
-    name: web-app
-    spec:
-      fqdn: app.example.com
-      protocol: http
-tunnelRef:
-  kind: Tunnel
-  name: my-tunnel
+  name: cf-tunnel
+  namespace: default
+spec:
+  tunnelRef:
+    kind: Tunnel
+    name: my-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: default
+spec:
+  ingressClassName: cf-tunnel
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app
+                port:
+                  number: 80
 ```
+
+`TunnelBinding` is legacy/deprecated. For migration steps, see [TunnelBinding Migration Guide](docs/en/migration/tunnelbinding-migration.md).
 
 ## CRD Reference
 
@@ -235,7 +282,7 @@ tunnelRef:
 |-----|-------------|-------|-------------|
 | Tunnel | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | Cloudflare Tunnel with managed cloudflared |
 | ClusterTunnel | `networking.cloudflare-operator.io/v1alpha2` | Cluster | Cluster-wide Cloudflare Tunnel |
-| TunnelBinding | `networking.cfargotunnel.com/v1alpha1` | Namespaced | Bind Services to Tunnels with DNS |
+| TunnelBinding (Deprecated) | `networking.cfargotunnel.com/v1alpha1` | Namespaced | Legacy Service-to-Tunnel binding |
 
 ### Private Network Access
 
@@ -318,8 +365,8 @@ tunnelRef:
 
 | CRD | API Version | Scope | Description |
 |-----|-------------|-------|-------------|
-| TunnelIngressClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Cluster | Config for Ingress integration |
-| TunnelGatewayClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Cluster | Config for Gateway API integration |
+| TunnelIngressClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | Config for Ingress integration |
+| TunnelGatewayClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | Config for Gateway API integration |
 
 > **Note**: The operator also supports native Kubernetes `Ingress` and Gateway API (`Gateway`, `HTTPRoute`, `TCPRoute`, `UDPRoute`) resources when configured with the appropriate IngressClass or GatewayClass.
 

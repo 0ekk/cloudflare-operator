@@ -43,7 +43,6 @@ spec:
     - "object-created"
     - "object-deleted"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

@@ -68,6 +68,8 @@ Same as [Tunnel Status](tunnel.md#status).
 
 ## Examples
 
+Examples below use `cloudflare.credentialsRef` (recommended). Legacy inline fields like `accountId` and `secret` are still supported for backward compatibility.
+
 ### Basic Cluster Tunnel
 
 ```yaml
@@ -80,10 +82,9 @@ spec:
     name: shared-k8s-tunnel
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    # Secret MUST be in cloudflare-operator-system namespace
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### High Availability Cluster Tunnel
@@ -129,9 +130,9 @@ spec:
     }
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Cluster Tunnel with WARP Routing
@@ -151,9 +152,9 @@ spec:
   enableWarpRouting: true
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Using ClusterTunnel from Ingress (Different Namespace)
@@ -168,9 +169,9 @@ spec:
   newTunnel:
     name: shared-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ---
 # Ingress in app-namespace-1
 apiVersion: networking.k8s.io/v1
@@ -231,9 +232,9 @@ spec:
   newTunnel:
     name: gateway-k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ---
 # HTTPRoute in any namespace
 apiVersion: gateway.networking.k8s.io/v1
@@ -303,8 +304,8 @@ stringData:
 
 - [Tunnel](tunnel.md) - Namespaced tunnel for single-namespace use
 - [DNSRecord](dnsrecord.md) - Manage DNS records for tunnel endpoints
-- [Ingress Integration](../guides/ingress-integration.md) - Use Ingress with ClusterTunnel
-- [Gateway API Integration](../guides/gateway-api-integration.md) - Use Gateway API with ClusterTunnel
+- [Ingress Integration](../migration/tunnelbinding-migration.md#step-3-create-ingressclass) - Use Ingress with ClusterTunnel
+- [Gateway API Integration](../migration/tunnelbinding-migration.md#migration-path-2-tunnelbinding-to-gateway-api) - Use Gateway API with ClusterTunnel
 - [NetworkRoute](networkroute.md) - Route private IP ranges through tunnel
 
 ## See Also

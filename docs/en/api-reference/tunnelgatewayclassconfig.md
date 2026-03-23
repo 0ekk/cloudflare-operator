@@ -1,10 +1,10 @@
 # TunnelGatewayClassConfig
 
-TunnelGatewayClassConfig is a cluster-scoped resource that configures Kubernetes Gateway API integration with Cloudflare Tunnels.
+TunnelGatewayClassConfig is a namespaced resource that configures Kubernetes Gateway API integration with Cloudflare Tunnels.
 
 ## Overview
 
-TunnelGatewayClassConfig enables automatic DNS management when using Kubernetes Gateway API resources with Cloudflare Tunnel.
+TunnelGatewayClassConfig links a GatewayClass to a Tunnel or ClusterTunnel and controls DNS/origin defaults for Gateway API routes.
 
 ### Key Features
 
@@ -16,23 +16,49 @@ TunnelGatewayClassConfig enables automatic DNS management when using Kubernetes 
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `cloudflare` | CloudflareDetails | **Yes** | API credentials |
+| `tunnelRef` | TunnelReference | **Yes** | Target `Tunnel` or `ClusterTunnel` |
+| `defaultOriginRequest` | OriginRequestSpec | No | Default origin settings for backend connections |
+| `dnsManagement` | string | No | DNS mode: `Automatic`, `Manual`, `DNSRecord` |
+| `dnsProxied` | bool | No | Whether managed DNS records are proxied (default: `true`) |
+| `watchNamespaces` | []string | No | Limit watched Route namespaces (empty = all) |
+| `fallbackTarget` | string | No | Fallback target for unmatched requests (default `http_status:404`) |
 
 ## Examples
 
-### Example 1: Gateway Configuration
+### Example 1: TunnelGatewayClassConfig
 
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelGatewayClassConfig
 metadata:
-  name: tunnel-gateway-config
+  name: cf-gateway
+  namespace: default
 spec:
-  cloudflare:
-    accountId: "1234567890abcdef"
-    credentialsRef:
-      name: production
+  tunnelRef:
+    kind: ClusterTunnel
+    name: my-cluster-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
+  fallbackTarget: http_status:404
 ```
+
+### Example 2: GatewayClass Parameters
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: cf-gateway
+spec:
+  controllerName: cloudflare-operator.io/gateway-controller
+  parametersRef:
+    group: networking.cloudflare-operator.io
+    kind: TunnelGatewayClassConfig
+    name: cf-gateway
+    namespace: default
+```
+
+`TunnelGatewayClassConfig` is namespaced, so GatewayClass `parametersRef.namespace` should point to the namespace where the config exists.
 
 ## See Also
 

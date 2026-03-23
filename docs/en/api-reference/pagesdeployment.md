@@ -30,6 +30,8 @@ PagesDeployment enables you to deploy your application to Cloudflare Pages from 
 | `directUpload` | PagesDirectUpload | No | *Deprecated*: Use `source.directUpload` |
 | `rollback` | RollbackConfig | No | *Deprecated*: Rollback configuration |
 
+`cloudflare.credentialsRef` is the recommended credential path. When it is set, `accountId` can be omitted.
+
 ### Source Types
 
 #### Git Source
@@ -119,9 +121,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Example 2: Direct Upload from S3
@@ -155,9 +156,8 @@ spec:
         type: tar.gz
         stripComponents: 1
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Example 3: Preview Deployment
@@ -177,9 +177,8 @@ spec:
     git:
       branch: feature/new-feature
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Example 4: Force Redeploy
@@ -208,9 +207,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ## Version Tracking

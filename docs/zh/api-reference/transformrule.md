@@ -1,43 +1,45 @@
-# Utransformrule
+# TransformRule
 
-transformrule 是集群作用域的资源（或命名空间作用域）。
+TransformRule 是一个命名空间级资源，用于在 Cloudflare 边缘修改 HTTP 请求和响应。
 
 ## 概述
 
-此资源管理 Cloudflare 中的相应功能。
+TransformRule 允许你在请求到达源站前，在 Cloudflare 边缘对请求头、响应头及 URL 相关内容进行改写。
 
 ### 主要特性
 
-- 功能管理
-- 配置控制
-- 规则应用
+- Header 改写
+- URL 重写
+- 请求/响应处理
+- 边缘侧规则执行
 
 ## 规范
 
 | 字段 | 类型 | 必需 | 描述 |
 |------|------|------|------|
-|  | string | **是** | 资源名称 |
-|  | CloudflareDetails | **是** | API 凭证 |
+| `name` | string | **是** | 规则名称 |
+| `pattern` | string | **是** | URL 匹配模式 |
+| `transforms` | []Transform | 否 | 要应用的转换规则 |
+| `cloudflare` | CloudflareDetails | **是** | Cloudflare API 凭证 |
 
 ## 示例
 
+### 示例 1：添加安全响应头
+
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: Utransformrule
+kind: TransformRule
 metadata:
-  name: example
+  name: add-security-headers
+  namespace: production
 spec:
-  name: "Example"
+  name: "Add Security Headers"
+  pattern: "*example.com/*"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
 
-## 相关资源
-
-- 参考相关文档
-
 ## 另请参阅
 
-- Cloudflare 文档
+- [Cloudflare Transform Rules](https://developers.cloudflare.com/rules/transform/)

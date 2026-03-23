@@ -1,12 +1,12 @@
 # CloudflareCredentials
 
-CloudflareCredentials 是一个集群作用域的资源，用于安全地管理 Cloudflare API 凭证和操作员配置。
+CloudflareCredentials 是一个集群级资源，用于安全地管理 Cloudflare API 凭证和 Operator 配置。
 
 ## 概述
 
-CloudflareCredentials 允许您安全地存储和引用 Cloudflare API 身份验证详情，供操作员中的其他资源使用。您无需在每个资源中嵌入凭证，只需定义一次并在整个集群中引用。此资源支持多种身份验证方法，并在创建或更新时验证凭证。
+CloudflareCredentials 允许您安全地存储和引用 Cloudflare API 身份验证详情，供 Operator 中的其他资源使用。您无需在每个资源中嵌入凭证，只需定义一次并在整个集群中引用。此资源支持多种身份验证方法，并在创建或更新时验证凭证。
 
-操作员会在创建或更新凭证时对其进行验证，确保凭证有效后才允许其他资源使用它们。
+Operator 会在创建或更新凭证时对其进行验证，确保凭证有效后才允许其他资源使用它们。
 
 ### 主要特性
 
@@ -243,7 +243,7 @@ spec:
 
 - 只能有一个 CloudflareCredentials 标记为 `isDefault: true`
 - 凭证在资源创建/更新期间进行同步验证
-- 操作员不支持凭证过期或自动轮换
+- Operator 不支持凭证过期或自动轮换
 - API 速率限制适用于凭证验证请求
 - 凭证必须存储在 Kubernetes Secret 中（目前不支持外部 Secret 管理）
 

@@ -1,6 +1,6 @@
 # WARPConnector
 
-WARPConnector 是一个命名空间作用域的资源，用于在 Kubernetes 中部署和管理 Cloudflare WARP 连接器，实现站点间连接和私有网络路由。
+WARPConnector 是一个命名空间级资源，用于在 Kubernetes 中部署和管理 Cloudflare WARP 连接器，实现站点间连接和私有网络路由。
 
 ## 概述
 
@@ -100,7 +100,6 @@ spec:
     - network: "10.0.0.0/8"
       comment: "Internal network"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -132,7 +131,6 @@ spec:
       cpu: "1000m"
       memory: "512Mi"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -166,7 +164,6 @@ spec:
       cpu: "2000m"
       memory: "1Gi"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

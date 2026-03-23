@@ -89,9 +89,8 @@ spec:
   comment: "Primary virtual network for all routing"
   isDefaultNetwork: true
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Example 2: Regional Virtual Networks
@@ -105,8 +104,6 @@ spec:
   name: "US East Virtual Network"
   comment: "Network for US East region deployments"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ---
@@ -118,8 +115,6 @@ spec:
   name: "EU West Virtual Network"
   comment: "Network for EU West region deployments"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ```
@@ -135,7 +130,6 @@ spec:
   name: "Tenant A Network"
   comment: "Isolated network for Tenant A"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -147,7 +141,6 @@ spec:
   name: "Tenant B Network"
   comment: "Isolated network for Tenant B"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

@@ -36,7 +36,6 @@ spec:
     level: "standard"
   inspection: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

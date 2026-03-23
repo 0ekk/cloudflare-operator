@@ -1,6 +1,6 @@
 # R2BucketDomain
 
-R2BucketDomain 是一个命名空间作用域的资源，用于为 Cloudflare R2 桶配置自定义域名。
+R2BucketDomain 是一个命名空间级资源，用于为 Cloudflare R2 桶配置自定义域名。
 
 ## 概述
 
@@ -36,7 +36,6 @@ spec:
   bucketRef:
     name: app-storage
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

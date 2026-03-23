@@ -142,9 +142,8 @@ spec:
   purgeBuildCache: false
 
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Spec Fields
@@ -158,6 +157,8 @@ spec:
 | `cloudflare` | object | Yes | Cloudflare account and credentials |
 
 *Required for new format. Legacy fields still supported for backward compatibility.
+
+When `cloudflare.credentialsRef` is set, `accountId` can be omitted in examples.
 
 ### Source Types
 
@@ -281,9 +282,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Deploy Specific Commit
@@ -303,9 +303,8 @@ spec:
       branch: main
       commitSha: "abc123def456789"  # Deploy this specific commit
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Preview Deployment from Feature Branch
@@ -324,9 +323,8 @@ spec:
     git:
       branch: feature/new-feature
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ---
@@ -387,9 +385,8 @@ spec:
         type: tar.gz
         stripComponents: 1
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### HTTP Source Configuration
@@ -429,9 +426,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### S3 Source Configuration
@@ -518,9 +514,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 #### OCI Credentials Secret
@@ -641,9 +636,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **How it works**:
@@ -712,9 +706,8 @@ spec:
   rollback:
     strategy: LastSuccessful
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### ByVersion Strategy
@@ -734,9 +727,8 @@ spec:
     strategy: ByVersion
     version: 5
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### ExactDeploymentID Strategy
@@ -756,9 +748,8 @@ spec:
     strategy: ExactDeploymentID
     deploymentId: "abc123def456"
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Deployment History
@@ -775,9 +766,8 @@ spec:
   productionBranch: main
   deploymentHistoryLimit: 100  # Maximum: 200 (FIFO retention)
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **History Configuration**:
@@ -831,9 +821,8 @@ spec:
   action: create           # DEPRECATED
   branch: main             # DEPRECATED
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### New Format (Recommended)
@@ -853,9 +842,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Automatic Conversion
@@ -906,9 +894,8 @@ spec:
   adoptionPolicy: MustExist  # Require project to exist
   deploymentHistoryLimit: 20
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 After adoption:
@@ -934,9 +921,8 @@ spec:
     buildCommand: npm run build
     destinationDir: dist
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### Original Configuration
@@ -980,9 +966,8 @@ spec:
   productionBranch: main
   enableWebAnalytics: true  # Enabled by default
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **Behavior**:
@@ -1018,9 +1003,8 @@ spec:
     name: my-app
   autoConfigureDNS: true  # Default: true - Cloudflare configures DNS automatically
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 **DNS Configuration Modes**:
@@ -1049,9 +1033,8 @@ spec:
     name: my-app
   autoConfigureDNS: false  # DNS managed externally
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 For manual DNS, create a CNAME record pointing to your Pages subdomain:
@@ -1135,7 +1118,7 @@ jobs:
             cloudflare:
               accountId: "${{ secrets.CF_ACCOUNT_ID }}"
               credentialsRef:
-                name: cloudflare-credentials
+                name: default
           EOF
 ```
 

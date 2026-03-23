@@ -35,6 +35,55 @@ kubectl describe tunnel <name>
 
 ## 常见问题
 
+### Ingress 已应用但未生效
+
+**症状：**
+- Ingress 已存在，但 Cloudflare Tunnel 中没有发布对应路由
+- Operator 持续 Reconcile，但没有创建/更新预期路由
+
+**诊断步骤：**
+
+```bash
+# 检查 Ingress 和 IngressClass
+kubectl get ingress <name> -n <namespace> -o yaml
+kubectl get ingressclass <name> -o yaml
+
+# 检查 TunnelIngressClassConfig
+kubectl get tunnelingressclassconfig <name> -o yaml
+
+# 过滤 operator 日志
+kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-controller-manager | \
+  grep -E "IngressClass|TunnelIngressClassConfig|resolve zone|CNAME|1056"
+```
+
+**常见原因：**
+
+1. **IngressClass 参数无效**
+   - 报错：`spec.parameters.namespace: Forbidden: parameters.scope is set to 'Cluster'`
+   - 处理：
+     - 如果使用 `scope: Cluster`，删除 `parameters.namespace`
+     - 对于 `TunnelIngressClassConfig`（命名空间作用域），使用 `scope: Namespace` 并设置 `parameters.namespace`
+
+2. **Zone / 凭证解析失败**
+   - 报错：`Failed to resolve zone and credentials`
+   - 处理：
+     - 确认 `CloudflareCredentials` 存在且可读
+     - 确认 `accountId` 正确
+     - 确认 API token 包含 `Account:Cloudflare Tunnel:Edit` 和 zone 级 DNS 权限
+     - 确认引用域名在同一账号下且为活动状态
+
+3. **CNAME 内容非法**
+   - 报错：`Content for CNAME record is invalid. (9007)`
+   - 处理：
+     - 确保 hostname 是有效 FQDN（不含 scheme/path，字段位置正确）
+     - 确保生成的目标是合法 tunnel hostname
+     - 确认 hostname 属于配置的 Cloudflare zone
+
+4. **隧道配置因 ingress 规则为空被拒绝**
+   - 报错：`The config file doesn't contain any ingress rules (1056)`
+   - 该问题通常出现在删除所有应用路由后。
+   - 处理：升级到会在同步隧道配置时始终保留兜底规则（`http_status:404`）的版本。
+
 ### 隧道无法连接
 
 **症状：**
@@ -79,14 +128,18 @@ kubectl logs -l app.kubernetes.io/name=cloudflared
 ### DNS 记录未创建
 
 **症状：**
-- TunnelBinding 显示成功但 DNS 无法解析
+- Ingress 已存在但 DNS 无法解析
 - Cloudflare 控制台中没有 CNAME 记录
 
 **诊断步骤：**
 
 ```bash
-# 检查 TunnelBinding 状态
-kubectl describe tunnelbinding <name>
+# 检查 Ingress 和 IngressClass
+kubectl get ingress <name> -n <namespace> -o yaml
+kubectl get ingressclass <name> -o yaml
+
+# 检查 TunnelIngressClassConfig
+kubectl get tunnelingressclassconfig <name> -n <namespace> -o yaml
 
 # 检查 operator 日志中的 DNS 错误
 kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-controller-manager | grep -i dns
@@ -102,6 +155,12 @@ kubectl logs -n cloudflare-operator-system deployment/cloudflare-operator-contro
 
 3. **区域未找到**
    - 域名必须在你的 Cloudflare 账户中处于活动状态
+
+4. **Legacy TunnelBinding 路径**
+   - 如果仍在使用 TunnelBinding，请单独检查：
+   ```bash
+   kubectl describe tunnelbinding <name>
+   ```
 
 ### 网络路由不工作
 
@@ -209,6 +268,17 @@ kubectl describe <resource> <name>
 - Token 缺少所需权限
 - 检查[权限矩阵](configuration.md#权限矩阵)
 
+### "Failed to resolve zone and credentials"
+
+- 凭证引用错误、凭证不存在或命名空间不正确
+- 域名与 token 所在账号中的活动 Cloudflare zone 不匹配
+- token 缺少必需的账号级或 zone 级权限
+
+### "Content for CNAME record is invalid. (9007)"
+
+- DNS 记录目标不是有效的 CNAME 目标
+- Ingress/Tunnel 配置中的 hostname 与 zone 不匹配
+
 ## 获取帮助
 
 如果问题持续存在：
@@ -219,7 +289,7 @@ kubectl describe <resource> <name>
    ```
 
 2. **检查 GitHub Issues**
-   - 搜索[现有问题](https://github.com/StringKe/cloudflare-operator/issues)
+   - 搜索[现有问题](https://github.com/0ekk/cloudflare-operator/issues)
 
 3. **开新 Issue**
    - 包含 operator 版本

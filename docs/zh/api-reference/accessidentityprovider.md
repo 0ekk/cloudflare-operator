@@ -1,10 +1,10 @@
 # AccessIdentityProvider
 
-AccessIdentityProvider 是一个集群作用域的资源，为 Cloudflare Zero Trust Access 配置身份提供商，支持 OAuth、OIDC、SAML 和其他身份验证方法。
+AccessIdentityProvider 是一个集群级资源，为 Cloudflare Zero Trust Access 配置身份提供商，支持 OAuth、OIDC、SAML 和其他身份验证方法。
 
 ## 概述
 
-AccessIdentityProvider 资源代表 Cloudflare 账户中配置的身份提供商 (IdP)。这些提供商在用户可以访问受保护的应用程序之前进行身份验证。操作员支持多种提供商类型，包括 Google Workspace、Microsoft Azure AD、Okta、Auth0、OIDC 提供商等。
+AccessIdentityProvider 资源代表 Cloudflare 账户中配置的身份提供商 (IdP)。这些提供商在用户可以访问受保护的应用程序之前进行身份验证。Operator 支持多种提供商类型，包括 Google Workspace、Microsoft Azure AD、Okta、Auth0、OIDC 提供商等。
 
 ### 主要特性
 
@@ -61,7 +61,6 @@ spec:
   config:
     appsDomain: "example.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
     namespace: cloudflare-operator-system
     key: CLIENT_ID
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -117,7 +115,6 @@ spec:
     enabled: true
     userDeprovision: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

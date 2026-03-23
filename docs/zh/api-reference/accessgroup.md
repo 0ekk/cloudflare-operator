@@ -105,9 +105,8 @@ spec:
         domain: "example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 带地理限制的部门
@@ -127,9 +126,8 @@ spec:
         country: ["US"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 排除承包商
@@ -151,9 +149,8 @@ spec:
         email: "temp-worker@example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 需要 MFA 的组
@@ -173,9 +170,8 @@ spec:
         authMethod: "mfa"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 服务令牌组（机器到机器）
@@ -191,9 +187,8 @@ spec:
     - anyValidServiceToken: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 多条件（高级）
@@ -224,9 +219,8 @@ spec:
         ip: ["10.0.0.0/8", "192.168.0.0/16"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### GitHub 组织成员
@@ -247,9 +241,8 @@ spec:
           - "platform"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Okta 组与设备态势
@@ -270,9 +263,8 @@ spec:
         integrationUid: "<posture-check-uid>"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## Access Group 流程图

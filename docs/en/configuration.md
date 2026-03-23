@@ -58,11 +58,12 @@ curl -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
 | Feature | Permission | Scope |
 |---------|------------|-------|
 | **Tunnel / ClusterTunnel** | `Account:Cloudflare Tunnel:Edit` | Account |
+| **TunnelIngressClassConfig / TunnelGatewayClassConfig** | `Account:Cloudflare Tunnel:Edit` + `Zone:DNS:Edit` (when DNS is managed) | Account + Zone |
 | **VirtualNetwork** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **NetworkRoute** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **WARPConnector** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **PrivateService** | `Account:Cloudflare Tunnel:Edit` | Account |
-| **TunnelBinding** | `Zone:DNS:Edit` + (optional) `Account:Access: Apps and Policies:Edit` | Account + Zone |
+| **TunnelBinding (Deprecated)** | `Zone:DNS:Edit` + (optional) `Account:Access: Apps and Policies:Edit` | Account + Zone |
 
 #### DNS & Connectivity
 
@@ -162,20 +163,41 @@ Zone Resources:
 
 ## Kubernetes Secret
 
-### Using API Token (Recommended)
+### Recommended: CloudflareCredentials + credentialsRef
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
-  namespace: default
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "your-api-token-here"
+---
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "your-account-id"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
 ```
 
-### Using API Key (Legacy)
+Then reference it from resources:
+
+```yaml
+spec:
+  cloudflare:
+    credentialsRef:
+      name: default
+```
+
+### Legacy: Inline Secret Fields
 
 ```yaml
 apiVersion: v1
@@ -195,7 +217,7 @@ The operator uses different Secret lookup rules based on CRD scope:
 
 | Resource Scope | Secret Location | Examples |
 |----------------|-----------------|----------|
-| **Namespaced** | Same namespace as the resource | Tunnel, TunnelBinding, DNSRecord, AccessApplication |
+| **Namespaced** | Same namespace as the resource (legacy inline secret mode) | Tunnel, TunnelBinding (deprecated), DNSRecord, AccessApplication |
 | **Cluster** | Operator namespace (`cloudflare-operator-system`) | ClusterTunnel, VirtualNetwork, NetworkRoute, AccessGroup |
 
 > **Important**: For detailed information about namespace restrictions and Secret management, see [Namespace Restrictions](namespace-restrictions.md).
@@ -207,11 +229,16 @@ All CRDs that interact with Cloudflare API include a `cloudflare` spec:
 ```yaml
 spec:
   cloudflare:
-    # Your Cloudflare Account ID (required for most resources)
-    accountId: "your-account-id"
+    # Recommended: Reference a CloudflareCredentials resource
+    credentialsRef:
+      name: default
 
     # Domain managed by Cloudflare (required for DNS-related operations)
     domain: example.com
+
+    # ---- Legacy inline fields (still supported) ----
+    # Your Cloudflare Account ID (required for most resources)
+    accountId: "your-account-id"
 
     # Name of the Kubernetes Secret containing API credentials
     secret: cloudflare-credentials

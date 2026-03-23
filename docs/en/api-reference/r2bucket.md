@@ -68,7 +68,6 @@ metadata:
 spec:
   bucketName: "app-storage-prod"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
       prefix: "data/"
       expiration: 365
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -122,7 +120,6 @@ spec:
       prefix: "yearly/"
       expiration: 2555
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

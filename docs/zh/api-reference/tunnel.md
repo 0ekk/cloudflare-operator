@@ -111,6 +111,8 @@ graph TB
 
 ## 示例
 
+以下示例使用推荐的 `cloudflare.credentialsRef`。旧版内联字段（如 `accountId`、`secret`）仍保持兼容。
+
 ### 基础新隧道
 
 ```yaml
@@ -124,9 +126,9 @@ spec:
     name: my-k8s-tunnel
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 通过 ID 使用现有隧道
@@ -142,9 +144,9 @@ spec:
     id: "550e8400-e29b-41d4-a716-446655440000"
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 启用 WARP 路由的隧道
@@ -165,9 +167,9 @@ spec:
   enableWarpRouting: true
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 自定义 cloudflared 部署的隧道
@@ -210,9 +212,9 @@ spec:
     }
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 自定义协议的隧道
@@ -233,9 +235,9 @@ spec:
   protocol: http2
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 使用自定义 CA 池的隧道
@@ -256,9 +258,9 @@ spec:
   originCaPool: custom-ca-certificates
 
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-api-credentials
+    credentialsRef:
+      name: default
 ---
 apiVersion: v1
 kind: Secret
@@ -323,8 +325,8 @@ stringData:
 
 - [ClusterTunnel](clustertunnel.md) - 用于多命名空间使用的集群级隧道
 - [DNSRecord](dnsrecord.md) - 管理隧道端点的 DNS 记录
-- [Ingress](../guides/ingress-integration.md) - 将原生 Kubernetes Ingress 与 Tunnel 配合使用
-- [Gateway API](../guides/gateway-api-integration.md) - 将 Gateway API (HTTPRoute) 与 Tunnel 配合使用
+- [Ingress](../migration/tunnelbinding-migration.md#步骤-3创建-ingressclass) - 将原生 Kubernetes Ingress 与 Tunnel 配合使用
+- [Gateway API](../migration/tunnelbinding-migration.md#迁移路径-2tunnelbinding-到-gateway-api) - 将 Gateway API (HTTPRoute) 与 Tunnel 配合使用
 - [NetworkRoute](networkroute.md) - 通过隧道路由私有 IP 范围（需 WARP 路由）
 - [VirtualNetwork](virtualnetwork.md) - 创建用于私有访问的虚拟网络
 

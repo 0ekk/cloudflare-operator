@@ -1,6 +1,6 @@
 # OriginCACertificate
 
-OriginCACertificate 是一个命名空间作用域的资源，用于管理 Cloudflare Origin CA 证书以进行源站身份验证。
+OriginCACertificate 是一个命名空间级资源，用于管理 Cloudflare Origin CA 证书以进行源站身份验证。
 
 ## 概述
 
@@ -36,7 +36,6 @@ spec:
   secretRef:
     name: origin-ca-cert
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

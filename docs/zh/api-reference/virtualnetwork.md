@@ -1,6 +1,6 @@
 # VirtualNetwork
 
-VirtualNetwork 是一个集群作用域的资源，代表 Cloudflare Zero Trust 虚拟网络，为通过 Cloudflare Tunnel 路由流量提供隔离的私有网络地址空间。
+VirtualNetwork 是一个集群级资源，代表 Cloudflare Zero Trust 虚拟网络，为通过 Cloudflare Tunnel 路由流量提供隔离的私有网络地址空间。
 
 ## 概述
 
@@ -13,7 +13,7 @@ VirtualNetwork 是一个集群作用域的资源，代表 Cloudflare Zero Trust 
 | **隔离网络** | 在 Cloudflare Zero Trust 中创建多个隔离的私有网络 |
 | **默认网络** | 将一个网络标记为默认用于路由 |
 | **注释** | 添加可选的描述用于组织和文档 |
-| **账户级别** | 集群作用域资源，在命名空间之间共享 |
+| **账户级别** | 集群级资源，在命名空间之间共享 |
 
 ### 使用场景
 
@@ -89,9 +89,8 @@ spec:
   comment: "Primary virtual network for all routing"
   isDefaultNetwork: true
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 示例 2：区域虚拟网络
@@ -105,8 +104,6 @@ spec:
   name: "US East Virtual Network"
   comment: "Network for US East region deployments"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ---
@@ -118,8 +115,6 @@ spec:
   name: "EU West Virtual Network"
   comment: "Network for EU West region deployments"
   cloudflare:
-    accountId: "1234567890abcdef"
-    domain: "example.com"
     credentialsRef:
       name: production
 ```
@@ -135,7 +130,6 @@ spec:
   name: "Tenant A Network"
   comment: "Isolated network for Tenant A"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -147,7 +141,6 @@ spec:
   name: "Tenant B Network"
   comment: "Isolated network for Tenant B"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

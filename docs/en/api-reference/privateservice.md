@@ -106,7 +106,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -131,7 +130,6 @@ spec:
     name: db-network
   comment: "PostgreSQL private access"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -152,7 +150,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ---
@@ -169,7 +166,6 @@ spec:
     kind: ClusterTunnel
     name: main-tunnel
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

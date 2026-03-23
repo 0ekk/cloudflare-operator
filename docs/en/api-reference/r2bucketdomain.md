@@ -36,7 +36,6 @@ spec:
   bucketRef:
     name: app-storage
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

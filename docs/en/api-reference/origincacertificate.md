@@ -36,7 +36,6 @@ spec:
   secretRef:
     name: origin-ca-cert
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

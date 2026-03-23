@@ -58,11 +58,12 @@ curl -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
 | 功能 | 权限 | 范围 |
 |------|------|------|
 | **Tunnel / ClusterTunnel** | `Account:Cloudflare Tunnel:Edit` | Account |
+| **TunnelIngressClassConfig / TunnelGatewayClassConfig** | `Account:Cloudflare Tunnel:Edit` + `Zone:DNS:Edit`（启用 DNS 托管时） | Account + Zone |
 | **VirtualNetwork** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **NetworkRoute** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **WARPConnector** | `Account:Cloudflare Tunnel:Edit` | Account |
 | **PrivateService** | `Account:Cloudflare Tunnel:Edit` | Account |
-| **TunnelBinding** | `Zone:DNS:Edit` + (可选) `Account:Access: Apps and Policies:Edit` | Account + Zone |
+| **TunnelBinding（已弃用）** | `Zone:DNS:Edit` + (可选) `Account:Access: Apps and Policies:Edit` | Account + Zone |
 
 #### DNS 与连接
 
@@ -162,20 +163,41 @@ curl -X POST "https://api.cloudflare.com/client/v4/user/tokens" \
 
 ## Kubernetes Secret
 
-### 使用 API Token（推荐）
+### 推荐：CloudflareCredentials + credentialsRef
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
-  namespace: default
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "your-api-token-here"
+---
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "your-account-id"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
 ```
 
-### 使用 API Key（旧版）
+然后在资源中引用它：
+
+```yaml
+spec:
+  cloudflare:
+    credentialsRef:
+      name: default
+```
+
+### 旧版：内联 Secret 字段
 
 ```yaml
 apiVersion: v1
@@ -195,7 +217,7 @@ Operator 根据 CRD 作用域使用不同的 Secret 查找规则：
 
 | 资源作用域 | Secret 位置 | 示例 |
 |-----------|-------------|------|
-| **Namespaced** | 与资源相同的命名空间 | Tunnel, TunnelBinding, DNSRecord, AccessApplication |
+| **Namespaced** | 与资源相同的命名空间（旧版内联 secret 模式） | Tunnel, TunnelBinding（已弃用）, DNSRecord, AccessApplication |
 | **Cluster** | Operator 命名空间（`cloudflare-operator-system`）| ClusterTunnel, VirtualNetwork, NetworkRoute, AccessGroup |
 
 > **重要**：有关命名空间限制和 Secret 管理的详细信息，请参阅 [命名空间限制](namespace-restrictions.md)。
@@ -207,11 +229,16 @@ Operator 根据 CRD 作用域使用不同的 Secret 查找规则：
 ```yaml
 spec:
   cloudflare:
-    # Cloudflare Account ID（大多数资源必填）
-    accountId: "your-account-id"
+    # 推荐：引用 CloudflareCredentials 资源
+    credentialsRef:
+      name: default
 
     # Cloudflare 管理的域名（DNS 相关操作必填）
     domain: example.com
+
+    # ---- 旧版内联字段（仍兼容）----
+    # Cloudflare Account ID（大多数资源必填）
+    accountId: "your-account-id"
 
     # 包含 API 凭证的 Kubernetes Secret 名称
     secret: cloudflare-credentials

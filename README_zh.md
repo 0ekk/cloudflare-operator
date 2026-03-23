@@ -1,7 +1,7 @@
 <h1 align=center>Cloudflare Zero Trust Operator</h1>
 
 <div align="center">
-  <a href="https://github.com/StringKe/cloudflare-operator">
+  <a href="https://github.com/0ekk/cloudflare-operator">
     <img src="docs/images/CloudflareOperatorLogo.png" alt="Logo" height="250">
   </a>
   <br />
@@ -10,27 +10,27 @@
     Cloudflare Zero Trust 的 Kubernetes Operator：隧道、访问控制、网关、设备、DNS、R2 和规则管理
     <br />
     <br />
-    <a href="https://github.com/StringKe/cloudflare-operator/blob/main/docs/en/README.md"><strong>Documentation (English) »</strong></a>
+    <a href="https://github.com/0ekk/cloudflare-operator/blob/main/docs/en/README.md"><strong>Documentation (English) »</strong></a>
     |
-    <a href="https://github.com/StringKe/cloudflare-operator/blob/main/docs/zh/README.md"><strong>文档 (中文) »</strong></a>
+    <a href="https://github.com/0ekk/cloudflare-operator/blob/main/docs/zh/README.md"><strong>文档 (中文) »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/StringKe/cloudflare-operator/tree/main/examples">示例</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/tree/main/examples">示例</a>
     ·
-    <a href="https://github.com/StringKe/cloudflare-operator/issues">报告 Bug</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/issues">报告 Bug</a>
     ·
-    <a href="https://github.com/StringKe/cloudflare-operator/issues">功能请求</a>
+    <a href="https://github.com/0ekk/cloudflare-operator/issues">功能请求</a>
   </p>
 </div>
 
 <div align="center">
 
-[![GitHub license](https://img.shields.io/github/license/StringKe/cloudflare-operator?color=brightgreen)](https://github.com/StringKe/cloudflare-operator/blob/main/LICENSE)
-[![GitHub release](https://img.shields.io/github/v/release/StringKe/cloudflare-operator)](https://github.com/StringKe/cloudflare-operator/releases)
-[![Go Report Card](https://goreportcard.com/badge/github.com/StringKe/cloudflare-operator)](https://goreportcard.com/report/github.com/StringKe/cloudflare-operator)
-[![CI](https://github.com/StringKe/cloudflare-operator/actions/workflows/release.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/release.yml)
-[![Test](https://github.com/StringKe/cloudflare-operator/actions/workflows/test.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/test.yml)
-[![Lint](https://github.com/StringKe/cloudflare-operator/actions/workflows/lint.yml/badge.svg)](https://github.com/StringKe/cloudflare-operator/actions/workflows/lint.yml)
+[![GitHub license](https://img.shields.io/github/license/0ekk/cloudflare-operator?color=brightgreen)](https://github.com/0ekk/cloudflare-operator/blob/main/LICENSE)
+[![GitHub release](https://img.shields.io/github/v/release/0ekk/cloudflare-operator)](https://github.com/0ekk/cloudflare-operator/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/0ekk/cloudflare-operator)](https://goreportcard.com/report/github.com/0ekk/cloudflare-operator)
+[![CI](https://github.com/0ekk/cloudflare-operator/actions/workflows/release.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/release.yml)
+[![Test](https://github.com/0ekk/cloudflare-operator/actions/workflows/test.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/test.yml)
+[![Lint](https://github.com/0ekk/cloudflare-operator/actions/workflows/lint.yml/badge.svg)](https://github.com/0ekk/cloudflare-operator/actions/workflows/lint.yml)
 
 </div>
 
@@ -132,7 +132,7 @@ flowchart TB
 | **Hash 检测** | 配置无变化时跳过同步，减少 API 调用 |
 | **关注点分离** | 每层有明确的单一职责 |
 
-> **说明**: 详细架构设计请参阅 [统一同步架构设计](docs/design/UNIFIED_SYNC_ARCHITECTURE.md)。
+> **说明**: 详细架构设计请参阅 [三层架构设计](docs/design/THREE_LAYER_ARCHITECTURE.md)。
 
 ## 快速开始
 
@@ -148,7 +148,7 @@ flowchart TB
 
 ```bash
 # 一键安装：CRDs + Namespace + RBAC + Operator
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-full-no-webhook.yaml
 
 # 验证安装
 kubectl get pods -n cloudflare-operator-system
@@ -158,13 +158,13 @@ kubectl get pods -n cloudflare-operator-system
 
 ```bash
 # 步骤 1：安装 CRD（需要 cluster-admin 权限）
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-crds.yaml
 
 # 步骤 2：创建命名空间
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-namespace.yaml
 
 # 步骤 3：安装 Operator（RBAC + Deployment）
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/download/cloudflare-operator-no-webhook.yaml
 
 # 验证安装
 kubectl get pods -n cloudflare-operator-system
@@ -189,41 +189,88 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: cloudflare-credentials
+  namespace: cloudflare-operator-system
 type: Opaque
 stringData:
   CLOUDFLARE_API_TOKEN: "<your-api-token>"
 ---
-# 2. 创建隧道
+# 2. 创建 CloudflareCredentials
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: CloudflareCredentials
+metadata:
+  name: default
+spec:
+  accountId: "<your-account-id>"
+  authType: apiToken
+  secretRef:
+    name: cloudflare-credentials
+    namespace: cloudflare-operator-system
+  isDefault: true
+---
+# 3. 创建隧道
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: Tunnel
 metadata:
   name: my-tunnel
+  namespace: default
 spec:
   newTunnel:
     name: k8s-tunnel
   cloudflare:
-    accountId: "<your-account-id>"
     domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 暴露服务
 
 ```yaml
-apiVersion: networking.cfargotunnel.com/v1alpha1
-kind: TunnelBinding
+apiVersion: networking.cloudflare-operator.io/v1alpha2
+kind: TunnelIngressClassConfig
 metadata:
-  name: web-binding
-subjects:
-  - kind: Service
-    name: web-app
-    spec:
-      fqdn: app.example.com
-      protocol: http
-tunnelRef:
-  kind: Tunnel
-  name: my-tunnel
+  name: cf-tunnel
+  namespace: default
+spec:
+  tunnelRef:
+    kind: Tunnel
+    name: my-tunnel
+  dnsManagement: Automatic
+  dnsProxied: true
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: cf-tunnel
+spec:
+  controller: cloudflare-operator.io/ingress-controller
+  parameters:
+    apiGroup: networking.cloudflare-operator.io
+    kind: TunnelIngressClassConfig
+    name: cf-tunnel
+    scope: Namespace
+    namespace: default
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  namespace: default
+spec:
+  ingressClassName: cf-tunnel
+  rules:
+    - host: app.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app
+                port:
+                  number: 80
 ```
+
+`TunnelBinding` 已是 legacy/弃用方案。迁移步骤请参考 [TunnelBinding 迁移指南](docs/zh/migration/tunnelbinding-migration.md)。
 
 ## CRD 参考
 
@@ -240,7 +287,7 @@ tunnelRef:
 |-----|---------|--------|------|
 | Tunnel | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | 带托管 cloudflared 的 Cloudflare Tunnel |
 | ClusterTunnel | `networking.cloudflare-operator.io/v1alpha2` | Cluster | 集群级 Cloudflare Tunnel |
-| TunnelBinding | `networking.cfargotunnel.com/v1alpha1` | Namespaced | 将服务绑定到隧道并配置 DNS |
+| TunnelBinding（已弃用） | `networking.cfargotunnel.com/v1alpha1` | Namespaced | 旧版服务到隧道绑定 |
 
 ### 私有网络访问
 
@@ -323,8 +370,8 @@ tunnelRef:
 
 | CRD | API 版本 | 作用域 | 说明 |
 |-----|---------|--------|------|
-| TunnelIngressClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Cluster | Ingress 集成配置 |
-| TunnelGatewayClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Cluster | Gateway API 集成配置 |
+| TunnelIngressClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | Ingress 集成配置 |
+| TunnelGatewayClassConfig | `networking.cloudflare-operator.io/v1alpha2` | Namespaced | Gateway API 集成配置 |
 
 > **说明**: Operator 还支持原生 Kubernetes `Ingress` 和 Gateway API (`Gateway`, `HTTPRoute`, `TCPRoute`, `UDPRoute`) 资源，需配置相应的 IngressClass 或 GatewayClass。
 

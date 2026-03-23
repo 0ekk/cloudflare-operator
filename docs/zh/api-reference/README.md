@@ -4,10 +4,14 @@
 
 ## CRD 分类
 
+### 核心配置
+- [CloudflareCredentials](cloudflarecredentials.md) - 共享 Cloudflare API 凭证
+- [CloudflareDomain](cloudflaredomain.md) - Zone（域名）级配置
+
 ### 隧道管理
 - [Tunnel](tunnel.md) - 命名空间级 Cloudflare Tunnel
 - [ClusterTunnel](clustertunnel.md) - 集群级 Cloudflare Tunnel
-- [TunnelBinding](tunnelbinding.md) - 将服务绑定到隧道
+- [TunnelBinding](tunnelbinding.md) - 已弃用的旧版服务到隧道绑定
 
 ### 私有网络
 - [VirtualNetwork](virtualnetwork.md) - 流量隔离网络
@@ -18,14 +22,17 @@
 ### 访问控制
 - [AccessApplication](accessapplication.md) - Zero Trust 应用
 - [AccessGroup](accessgroup.md) - 可复用的访问策略组
+- [AccessPolicy](accesspolicy.md) - 可复用的访问策略模板
 - [AccessIdentityProvider](accessidentityprovider.md) - 身份提供商配置
 - [AccessServiceToken](accessservicetoken.md) - M2M 认证令牌
-- [AccessTunnel](accesstunnel.md) - Access 保护的隧道端点
 
 ### 网关与安全
 - [GatewayRule](gatewayrule.md) - DNS/HTTP/L4 策略规则
 - [GatewayList](gatewaylist.md) - 网关规则使用的列表
 - [GatewayConfiguration](gatewayconfiguration.md) - 全局网关设置
+- [ZoneRuleset](zoneruleset.md) - Zone 规则集管理
+- [TransformRule](transformrule.md) - 边缘请求/响应转换
+- [RedirectRule](redirectrule.md) - 边缘 URL 重定向
 
 ### 设备管理
 - [DeviceSettingsPolicy](devicesettingspolicy.md) - WARP 客户端配置
@@ -33,11 +40,20 @@
 
 ### DNS 与连接
 - [DNSRecord](dnsrecord.md) - DNS 记录管理
+- [OriginCACertificate](origincacertificate.md) - Origin CA 证书管理
+
+### 存储
+- [R2Bucket](r2bucket.md) - R2 存储桶管理
+- [R2BucketDomain](r2bucketdomain.md) - R2 存储桶自定义域名
+- [R2BucketNotification](r2bucketnotification.md) - R2 事件通知
 
 ### Pages 与 Workers
 - [PagesProject](pagesproject.md) - Cloudflare Pages 项目管理
 - [PagesDeployment](pagesdeployment.md) - 部署版本到 Pages
 - [PagesDomain](pagesdomain.md) - Pages 自定义域名
+
+### 域名注册
+- [DomainRegistration](domainregistration.md) - 域名注册（企业版）
 
 ### Kubernetes 集成
 - [TunnelIngressClassConfig](tunnelingressclassconfig.md) - Ingress 集成
@@ -52,9 +68,8 @@
 ```yaml
 spec:
   cloudflare:
-    accountId: "your-account-id"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### 状态条件

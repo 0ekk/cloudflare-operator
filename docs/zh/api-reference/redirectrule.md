@@ -1,43 +1,46 @@
-# Uredirectrule
+# RedirectRule
 
-redirectrule 是集群作用域的资源（或命名空间作用域）。
+RedirectRule 是一个命名空间级资源，用于在 Cloudflare 边缘创建 HTTP 重定向规则。
 
 ## 概述
 
-此资源管理 Cloudflare 中的相应功能。
+RedirectRule 支持基于 URL 匹配模式把请求重定向到目标地址，重定向在 Cloudflare 边缘完成，无需回源。
 
 ### 主要特性
 
-- 功能管理
-- 配置控制
-- 规则应用
+- URL 重定向
+- 模式匹配
+- HTTP 状态码控制
+- 保留路径和参数
 
 ## 规范
 
 | 字段 | 类型 | 必需 | 描述 |
 |------|------|------|------|
-|  | string | **是** | 资源名称 |
-|  | CloudflareDetails | **是** | API 凭证 |
+| `pattern` | string | **是** | URL 匹配模式 |
+| `destination` | string | **是** | 重定向目标 |
+| `statusCode` | int | 否 | HTTP 状态码 |
+| `cloudflare` | CloudflareDetails | **是** | Cloudflare API 凭证 |
 
 ## 示例
 
+### 示例 1：HTTP 跳转到 HTTPS
+
 ```yaml
 apiVersion: networking.cloudflare-operator.io/v1alpha2
-kind: Uredirectrule
+kind: RedirectRule
 metadata:
-  name: example
+  name: https-redirect
+  namespace: production
 spec:
-  name: "Example"
+  pattern: "http://example.com/*"
+  destination: "https://example.com/$1"
+  statusCode: 301
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
 
-## 相关资源
-
-- 参考相关文档
-
 ## 另请参阅
 
-- Cloudflare 文档
+- [Cloudflare Redirect Rules](https://developers.cloudflare.com/rules/redirect/)

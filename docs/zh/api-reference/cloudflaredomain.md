@@ -1,6 +1,6 @@
 # CloudflareDomain
 
-CloudflareDomain 是一个集群作用域的资源，用于管理 Cloudflare 中的综合域名配置。
+CloudflareDomain 是一个集群级资源，用于管理 Cloudflare 中的综合域名配置。
 
 ## 概述
 
@@ -34,7 +34,6 @@ metadata:
 spec:
   domain: "example.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

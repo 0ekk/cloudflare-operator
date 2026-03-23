@@ -36,7 +36,6 @@ spec:
     - type: "firewall"
       enabled: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

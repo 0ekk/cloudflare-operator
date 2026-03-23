@@ -1,6 +1,6 @@
 # PagesDeployment
 
-PagesDeployment 是一个命名空间作用域的资源，用于管理 Cloudflare Pages 项目部署，支持 Git 源、直接上传和智能回滚功能。
+PagesDeployment 是一个命名空间级资源，用于管理 Cloudflare Pages 项目部署，支持 Git 源、直接上传和智能回滚功能。
 
 ## 概述
 
@@ -29,6 +29,8 @@ PagesDeployment 使您能够从 Kubernetes 将应用程序部署到 Cloudflare P
 | `action` | string | 否 | *已弃用*：使用 `environment` 和 `source` |
 | `directUpload` | PagesDirectUpload | 否 | *已弃用*：使用 `source.directUpload` |
 | `rollback` | RollbackConfig | 否 | *已弃用*：回滚配置 |
+
+推荐使用 `cloudflare.credentialsRef`。当该字段已设置时，可以省略 `accountId`。
 
 ### 源类型
 
@@ -119,9 +121,8 @@ spec:
     git:
       branch: main
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 示例 2：从 S3 直接上传
@@ -155,9 +156,8 @@ spec:
         type: tar.gz
         stripComponents: 1
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 示例 3：预览部署
@@ -177,9 +177,8 @@ spec:
     git:
       branch: feature/new-feature
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 示例 4：强制重新部署
@@ -208,9 +207,8 @@ spec:
       archive:
         type: tar.gz
   cloudflare:
-    accountId: "your-account-id"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ## 版本跟踪

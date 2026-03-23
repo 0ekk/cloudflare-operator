@@ -61,7 +61,6 @@ spec:
   config:
     appsDomain: "example.com"
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -93,7 +92,6 @@ spec:
     namespace: cloudflare-operator-system
     key: CLIENT_ID
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```
@@ -117,7 +115,6 @@ spec:
     enabled: true
     userDeprovision: true
   cloudflare:
-    accountId: "1234567890abcdef"
     credentialsRef:
       name: production
 ```

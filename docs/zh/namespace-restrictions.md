@@ -13,7 +13,7 @@ Cloudflare Operator 在两个不同的作用域管理资源：
 
 ## CRD 作用域参考
 
-### 集群级 CRD（13 个）
+### 集群级 CRD（11 个）
 
 这些资源不绑定到任何命名空间。Secret 必须在 **operator 命名空间**（`cloudflare-operator-system`）中。
 
@@ -23,7 +23,6 @@ Cloudflare Operator 在两个不同的作用域管理资源：
 | ClusterTunnel | 隧道 | 集群级 Cloudflare Tunnel |
 | VirtualNetwork | 网络 | 流量隔离虚拟网络 |
 | NetworkRoute | 网络 | 通过隧道路由 CIDR |
-| WARPConnector | 网络 | 站点间 WARP 连接器 |
 | AccessGroup | 访问控制 | 可复用的访问策略组 |
 | AccessIdentityProvider | 访问控制 | 身份提供商配置 |
 | GatewayRule | 网关 | DNS/HTTP/L4 策略规则 |
@@ -31,22 +30,23 @@ Cloudflare Operator 在两个不同的作用域管理资源：
 | GatewayConfiguration | 网关 | 全局网关设置 |
 | DeviceSettingsPolicy | 设备 | WARP 客户端配置 |
 | DevicePostureRule | 设备 | 设备健康检查规则 |
-| TunnelGatewayClassConfig | K8s 集成 | Gateway API 集成配置 |
 
-### 命名空间级 CRD（8 个）
+### 命名空间级 CRD（10 个）
 
 这些资源存在于特定命名空间内。Secret 必须在与资源**相同的命名空间**中。
 
 | CRD | 类别 | 说明 |
 |-----|------|------|
 | Tunnel | 隧道 | 命名空间级 Cloudflare Tunnel |
-| TunnelBinding | 隧道 | 将服务绑定到隧道并配置 DNS |
+| TunnelBinding（已弃用） | 隧道 | 旧版服务到隧道绑定 |
+| WARPConnector | 网络 | 站点间 WARP 连接器 |
 | AccessApplication | 访问控制 | Zero Trust 应用 |
 | AccessServiceToken | 访问控制 | M2M 认证令牌 |
 | AccessTunnel | 访问控制 | Access 保护的隧道端点 |
 | PrivateService | 网络 | 私有 IP 服务暴露 |
 | DNSRecord | DNS | DNS 记录管理 |
 | TunnelIngressClassConfig | K8s 集成 | Ingress 集成配置 |
+| TunnelGatewayClassConfig | K8s 集成 | Gateway API 集成配置 |
 
 ## Secret 查找规则
 
@@ -112,9 +112,10 @@ stringData:
   CLOUDFLARE_API_TOKEN: "your-token"
 ```
 
-### 规则 3：TunnelBinding 特殊情况
+### 规则 3：TunnelBinding（已弃用）特殊情况
 
 `TunnelBinding` 是命名空间级的，但可以引用 `Tunnel`（命名空间级）或 `ClusterTunnel`（集群级）。
+该资源仅建议用于存量兼容场景。新建场景请优先使用 Ingress 或 Gateway API。
 
 **引用 Tunnel（相同命名空间）：**
 
@@ -164,14 +165,14 @@ flowchart TB
     subgraph ProdNS["production 命名空间"]
         ProdSecret["Secret: cloudflare-credentials"]
         Tunnel["Tunnel"]
-        TB["TunnelBinding"]
+        TB["TunnelBinding（Legacy）"]
         AA["AccessApplication"]
     end
 
     subgraph DevNS["development 命名空间"]
         DevSecret["Secret: cloudflare-credentials"]
         DevTunnel["Tunnel"]
-        DevTB["TunnelBinding"]
+        DevTB["TunnelBinding（Legacy）"]
     end
 
     CT --> OpSecret
@@ -251,7 +252,7 @@ spec:
     domain: example.com
     secret: cloudflare-credentials
 ---
-# 任何命名空间中的 TunnelBinding 都可以引用它
+# 任何命名空间中的 Legacy TunnelBinding 都可以引用它
 apiVersion: networking.cloudflare-operator.io/v1alpha2
 kind: TunnelBinding
 metadata:
@@ -279,7 +280,7 @@ Operator 的 ClusterRole 授予在所有命名空间读取 Secret 的权限：
 这是必要的，因为：
 - 命名空间级资源需要其命名空间中的 Secret
 - 集群级资源需要 operator 命名空间中的 Secret
-- TunnelBinding 可能引用 ClusterTunnel 的凭证
+- Legacy TunnelBinding 可能引用 ClusterTunnel 的凭证
 
 ## 故障排除
 
@@ -303,7 +304,7 @@ Operator 的 ClusterRole 授予在所有命名空间读取 Secret 的权限：
 
 **解决方案**：确保 operator ServiceAccount 有权限读取目标命名空间中的 Secret。
 
-### TunnelBinding 找不到 Tunnel
+### TunnelBinding（已弃用）找不到 Tunnel
 
 **错误**：`Tunnel "my-tunnel" not found`
 
@@ -319,7 +320,7 @@ Operator 的 ClusterRole 授予在所有命名空间读取 Secret 的权限：
 |---------|-------------|-------------|
 | Tunnel | 与资源相同 | `production` |
 | ClusterTunnel | Operator 命名空间 | `cloudflare-operator-system` |
-| TunnelBinding | 与资源相同 | `production` |
+| TunnelBinding（已弃用） | 与资源相同 | `production` |
 | VirtualNetwork | Operator 命名空间 | `cloudflare-operator-system` |
 | NetworkRoute | Operator 命名空间 | `cloudflare-operator-system` |
 | AccessApplication | 与资源相同 | `production` |

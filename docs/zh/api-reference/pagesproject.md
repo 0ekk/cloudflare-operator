@@ -1,6 +1,6 @@
 # PagesProject
 
-PagesProject 是一个命名空间级别的资源，代表 Cloudflare Pages 项目。Cloudflare Pages 是一个 JAMstack 平台，用于部署静态站点和集成 Workers 的全栈应用。
+PagesProject 是一个命名空间级资源，代表 Cloudflare Pages 项目。Cloudflare Pages 是一个 JAMstack 平台，用于部署静态站点和集成 Workers 的全栈应用。
 
 ## 概述
 
@@ -347,9 +347,8 @@ spec:
     buildCaching: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### GitHub 集成项目
@@ -379,9 +378,8 @@ spec:
     buildCaching: true
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### GitOps 两阶段部署
@@ -420,9 +418,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 声明式版本与模板
@@ -457,9 +454,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 健康检查后自动升级
@@ -494,9 +490,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 追踪最新预览
@@ -525,9 +520,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 外部系统控制
@@ -558,9 +552,8 @@ spec:
   revisionHistoryLimit: 10
 
   cloudflare:
-    accountId: "<account-id>"
     credentialsRef:
-      name: cloudflare-credentials
+      name: default
 ```
 
 ### 采用现有项目
@@ -582,9 +575,8 @@ spec:
   deletionPolicy: Orphan
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## 使用场景
@@ -645,7 +637,7 @@ deploymentConfigs:
 - [PagesDeployment](pagesdeployment.md) - 将特定版本部署到 Cloudflare Pages
 - [PagesDomain](pagesdomain.md) - 为 Pages 项目配置自定义域名
 - [R2Bucket](r2bucket.md) - 创建用于 Pages 的 R2 存储桶
-- [CloudflareDomain](cloudflareadomain.md) - 配置 DNS 和 SSL 设置
+- [CloudflareDomain](cloudflaredomain.md) - 配置 DNS 和 SSL 设置
 
 ## 参考资料
 

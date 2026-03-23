@@ -1,6 +1,6 @@
 # AccessApplication
 
-AccessApplication is a cluster-scoped resource that represents a Cloudflare Access Application. It protects web applications, SSH endpoints, VNC, and other resources with Zero Trust authentication.
+AccessApplication is a namespaced resource that represents a Cloudflare Access Application. It protects web applications, SSH endpoints, VNC, and other resources with Zero Trust authentication.
 
 ## Overview
 
@@ -187,9 +187,8 @@ spec:
       precedence: 1
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Application with Inline Email Rules
@@ -216,9 +215,8 @@ spec:
             email: "contractor@example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Application with Require Rules (Multiple Conditions)
@@ -246,9 +244,8 @@ spec:
             country: ["US"]
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Public API (Bypass Authentication)
@@ -271,9 +268,8 @@ spec:
         - everyone: {}
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ### Service Token Access (M2M)
@@ -302,9 +298,8 @@ spec:
             domain: "example.com"
 
   cloudflare:
-    accountId: "<account-id>"
-    domain: example.com
-    secret: cloudflare-credentials
+    credentialsRef:
+      name: default
 ```
 
 ## Related Resources
