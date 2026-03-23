@@ -14,8 +14,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/test/e2e/framework"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/test/e2e/framework"
 )
 
 // TestVirtualNetworkLifecycle tests the complete lifecycle of a VirtualNetwork resource

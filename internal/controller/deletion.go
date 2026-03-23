@@ -13,7 +13,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 )
 
 // DefaultRequeueAfter is the default requeue duration after an error

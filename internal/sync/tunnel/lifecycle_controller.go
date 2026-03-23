@@ -12,6 +12,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apitypes "k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -19,10 +20,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	tunnelsvc "github.com/StringKe/cloudflare-operator/internal/service/tunnel"
-	"github.com/StringKe/cloudflare-operator/internal/sync/common"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	tunnelsvc "github.com/0ekk/cloudflare-operator/internal/service/tunnel"
+	"github.com/0ekk/cloudflare-operator/internal/sync/common"
 )
 
 const (
@@ -173,10 +174,41 @@ func (*LifecycleController) getLifecycleConfig(syncState *v1alpha2.CloudflareSyn
 
 // createAPIClient creates a Cloudflare API client from the SyncState credentials
 func (r *LifecycleController) createAPIClient(ctx context.Context, syncState *v1alpha2.CloudflareSyncState) (*cf.API, error) {
+	if syncState.Spec.CredentialsRef.Name == "" {
+		return r.createAPIClientFromLegacyTunnelSource(ctx, syncState)
+	}
+
 	credRef := &v1alpha2.CloudflareCredentialsRef{
 		Name: syncState.Spec.CredentialsRef.Name,
 	}
 	return cf.NewAPIClientFromCredentialsRef(ctx, r.Client, credRef)
+}
+
+func (r *LifecycleController) createAPIClientFromLegacyTunnelSource(
+	ctx context.Context,
+	syncState *v1alpha2.CloudflareSyncState,
+) (*cf.API, error) {
+	for _, source := range syncState.Spec.Sources {
+		switch source.Ref.Kind {
+		case "Tunnel":
+			tunnel := &v1alpha2.Tunnel{}
+			if err := r.Client.Get(ctx, apitypes.NamespacedName{
+				Name:      source.Ref.Name,
+				Namespace: source.Ref.Namespace,
+			}, tunnel); err != nil {
+				return nil, fmt.Errorf("get source Tunnel %s/%s: %w", source.Ref.Namespace, source.Ref.Name, err)
+			}
+			return cf.NewAPIClientFromDetails(ctx, r.Client, source.Ref.Namespace, tunnel.Spec.Cloudflare)
+		case "ClusterTunnel":
+			clusterTunnel := &v1alpha2.ClusterTunnel{}
+			if err := r.Client.Get(ctx, apitypes.NamespacedName{Name: source.Ref.Name}, clusterTunnel); err != nil {
+				return nil, fmt.Errorf("get source ClusterTunnel %s: %w", source.Ref.Name, err)
+			}
+			return cf.NewAPIClientFromDetails(ctx, r.Client, common.OperatorNamespace, clusterTunnel.Spec.Cloudflare)
+		}
+	}
+
+	return nil, errors.New("credentials reference name is empty")
 }
 
 // createTunnel creates a new tunnel via Cloudflare API
@@ -342,7 +374,11 @@ func (r *LifecycleController) handleError(
 		logger.Error(updateErr, "Failed to update error status")
 	}
 
-	return ctrl.Result{RequeueAfter: common.RequeueAfterError(err)}, err
+	if delay := common.RequeueAfterError(err); delay > 0 {
+		return ctrl.Result{RequeueAfter: delay}, nil
+	}
+
+	return ctrl.Result{}, nil
 }
 
 // updateSuccessStatus updates the SyncState status with success and result data
@@ -502,12 +538,32 @@ func isTunnelLifecycleSyncState(obj client.Object) bool {
 	return ok && ss.Spec.ResourceType == v1alpha2.SyncResourceTunnelLifecycle
 }
 
+func shouldReconcileLifecycleUpdate(oldObj, newObj client.Object) bool {
+	oldSS, okOld := oldObj.(*v1alpha2.CloudflareSyncState)
+	newSS, okNew := newObj.(*v1alpha2.CloudflareSyncState)
+	if !okOld || !okNew {
+		return false
+	}
+
+	if !isTunnelLifecycleSyncState(newSS) {
+		return false
+	}
+
+	if oldSS.Generation != newSS.Generation {
+		return true
+	}
+
+	oldDeleting := !oldSS.DeletionTimestamp.IsZero()
+	newDeleting := !newSS.DeletionTimestamp.IsZero()
+	return oldDeleting != newDeleting
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *LifecycleController) SetupWithManager(mgr ctrl.Manager) error {
 	// Predicate to only watch TunnelLifecycle type SyncStates
 	lifecyclePredicate := predicate.Funcs{
 		CreateFunc:  func(e event.CreateEvent) bool { return isTunnelLifecycleSyncState(e.Object) },
-		UpdateFunc:  func(e event.UpdateEvent) bool { return isTunnelLifecycleSyncState(e.ObjectNew) },
+		UpdateFunc:  func(e event.UpdateEvent) bool { return shouldReconcileLifecycleUpdate(e.ObjectOld, e.ObjectNew) },
 		DeleteFunc:  func(e event.DeleteEvent) bool { return isTunnelLifecycleSyncState(e.Object) },
 		GenericFunc: func(e event.GenericEvent) bool { return isTunnelLifecycleSyncState(e.Object) },
 	}

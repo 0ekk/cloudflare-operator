@@ -23,10 +23,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
-	"github.com/StringKe/cloudflare-operator/internal/controller/common"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
+	"github.com/0ekk/cloudflare-operator/internal/controller/common"
 )
 
 const (

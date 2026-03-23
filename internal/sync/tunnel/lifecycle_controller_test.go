@@ -6,10 +6,12 @@ package tunnel
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -17,8 +19,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	tunnelsvc "github.com/StringKe/cloudflare-operator/internal/service/tunnel"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	tunnelsvc "github.com/0ekk/cloudflare-operator/internal/service/tunnel"
 )
 
 func init() {
@@ -366,6 +369,31 @@ func TestLifecycleController_HandleDeletion_PendingID(t *testing.T) {
 	assert.True(t, err != nil, "SyncState should be deleted")
 }
 
+func TestLifecycleController_HandleError_PermanentErrorDoesNotRequeueOrReturnError(t *testing.T) {
+	config := createLifecycleConfig(tunnelsvc.LifecycleActionCreate, "my-tunnel", "")
+	syncState := createLifecycleSyncState("test-sync", config, v1alpha2.SyncStatusPending, true)
+
+	client := fake.NewClientBuilder().
+		WithScheme(scheme.Scheme).
+		WithObjects(syncState).
+		WithStatusSubresource(syncState).
+		Build()
+
+	c := NewLifecycleController(client)
+	ctx := context.Background()
+
+	result, err := c.handleError(ctx, syncState, fmt.Errorf("create API client: %w", cf.ErrResourceNotFound))
+
+	require.NoError(t, err)
+	assert.Equal(t, ctrl.Result{}, result)
+
+	var updatedState v1alpha2.CloudflareSyncState
+	err = client.Get(ctx, types.NamespacedName{Name: "test-sync"}, &updatedState)
+	require.NoError(t, err)
+	assert.Equal(t, v1alpha2.SyncStatusError, updatedState.Status.SyncStatus)
+	assert.Contains(t, updatedState.Status.Error, "resource not found")
+}
+
 func TestLifecycleController_SetupWithManager(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme.Scheme).Build()
 	c := NewLifecycleController(client)
@@ -482,4 +510,104 @@ func TestIsTunnelLifecycleSyncState(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestShouldReconcileLifecycleUpdate_StatusOnlyChange(t *testing.T) {
+	oldObj := &v1alpha2.CloudflareSyncState{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "sync-1",
+			Generation: 1,
+		},
+		Spec: v1alpha2.CloudflareSyncStateSpec{
+			ResourceType: v1alpha2.SyncResourceTunnelLifecycle,
+		},
+		Status: v1alpha2.CloudflareSyncStateStatus{
+			SyncStatus: v1alpha2.SyncStatusPending,
+		},
+	}
+
+	newObj := oldObj.DeepCopy()
+	newObj.Status.SyncStatus = v1alpha2.SyncStatusError
+
+	assert.False(t, shouldReconcileLifecycleUpdate(oldObj, newObj))
+}
+
+func TestShouldReconcileLifecycleUpdate_GenerationChanged(t *testing.T) {
+	oldObj := &v1alpha2.CloudflareSyncState{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       "sync-1",
+			Generation: 1,
+		},
+		Spec: v1alpha2.CloudflareSyncStateSpec{
+			ResourceType: v1alpha2.SyncResourceTunnelLifecycle,
+		},
+	}
+
+	newObj := oldObj.DeepCopy()
+	newObj.Generation = 2
+
+	assert.True(t, shouldReconcileLifecycleUpdate(oldObj, newObj))
+}
+
+func TestLifecycleController_CreateAPIClient_FallbackToLegacyTunnelSecret(t *testing.T) {
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cloudflare-credentials",
+			Namespace: "default",
+		},
+		StringData: map[string]string{
+			"CLOUDFLARE_API_TOKEN": "test-token",
+		},
+	}
+	secretData := map[string][]byte{}
+	for k, v := range secret.StringData {
+		secretData[k] = []byte(v)
+	}
+	secret.Data = secretData
+
+	tunnel := &v1alpha2.Tunnel{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "k8s-tunnel",
+			Namespace: "default",
+		},
+		Spec: v1alpha2.TunnelSpec{
+			Cloudflare: v1alpha2.CloudflareDetails{
+				Secret:    "cloudflare-credentials",
+				AccountId: "acc-123",
+				Domain:    "example.com",
+			},
+		},
+	}
+
+	syncState := &v1alpha2.CloudflareSyncState{
+		ObjectMeta: metav1.ObjectMeta{Name: "tunnel-lifecycle-k8s-tunnel"},
+		Spec: v1alpha2.CloudflareSyncStateSpec{
+			ResourceType:   v1alpha2.SyncResourceTunnelLifecycle,
+			CloudflareID:   "k8s-tunnel",
+			CredentialsRef: v1alpha2.CredentialsReference{},
+			Sources: []v1alpha2.ConfigSource{
+				{
+					Ref: v1alpha2.SourceReference{
+						Kind:      "Tunnel",
+						Namespace: "default",
+						Name:      "k8s-tunnel",
+					},
+				},
+			},
+		},
+	}
+
+	client := fake.NewClientBuilder().
+		WithScheme(scheme.Scheme).
+		WithObjects(secret, tunnel, syncState).
+		Build()
+
+	c := NewLifecycleController(client)
+	api, err := c.createAPIClient(context.Background(), syncState)
+
+	require.NoError(t, err)
+	require.NotNil(t, api)
+	assert.Equal(t, "test-token", api.APIToken)
+	assert.Equal(t, "acc-123", api.AccountId)
+	assert.Equal(t, "example.com", api.Domain)
 }

@@ -9,7 +9,7 @@ plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: cf-operator-new
-repo: github.com/StringKe/cloudflare-operator
+repo: github.com/0ekk/cloudflare-operator
 resources:
 - api:
     crdVersion: v1
@@ -17,7 +17,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: Tunnel
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha1
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -25,7 +25,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: ClusterTunnel
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha1
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -33,7 +33,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: AccessTunnel
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha1
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
@@ -42,7 +42,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: Tunnel
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -51,7 +51,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: ClusterTunnel
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -60,7 +60,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: VirtualNetwork
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -69,7 +69,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: NetworkRoute
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -78,7 +78,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: PrivateService
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -87,7 +87,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: WARPConnector
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -96,7 +96,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: AccessApplication
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -105,7 +105,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: AccessGroup
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -114,7 +114,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: AccessIdentityProvider
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -123,7 +123,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: AccessServiceToken
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -132,7 +132,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: GatewayRule
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -141,7 +141,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: GatewayList
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -150,7 +150,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: GatewayConfiguration
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -159,7 +159,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: DeviceSettingsPolicy
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -168,7 +168,7 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: DevicePostureRule
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 - api:
     crdVersion: v1
@@ -177,6 +177,6 @@ resources:
   domain: cloudflare-operator.io
   group: networking
   kind: DNSRecord
-  path: github.com/StringKe/cloudflare-operator/api/v1alpha2
+  path: github.com/0ekk/cloudflare-operator/api/v1alpha2
   version: v1alpha2
 version: "3"

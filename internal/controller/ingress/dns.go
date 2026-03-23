@@ -17,8 +17,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
 )
 
 // reconcileDNS creates/updates DNS records for Ingress hostnames

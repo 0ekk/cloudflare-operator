@@ -25,9 +25,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	cfclient "github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	cfclient "github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
 )
 
 const (
@@ -260,6 +260,7 @@ func (r *Reconciler) createCloudflareClient(ctx context.Context, creds *networki
 	if baseURL := cfclient.GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(cfclient.NewAPIHTTPClient()))
 
 	switch creds.Spec.AuthType {
 	case networkingv1alpha2.AuthTypeAPIToken:

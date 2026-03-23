@@ -11,7 +11,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/models"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/models"
 )
 
 // Response writes a standard Cloudflare API response.

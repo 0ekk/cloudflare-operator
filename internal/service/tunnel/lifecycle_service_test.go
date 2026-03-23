@@ -14,8 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/service"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/service"
 )
 
 func init() {

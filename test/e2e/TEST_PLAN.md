@@ -90,10 +90,10 @@ kubectl delete crd -l app.kubernetes.io/name=cloudflare-operator
 
 ```bash
 # 安装 CRD
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/download/v0.17.9/cloudflare-operator.crds.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/download/v0.17.9/cloudflare-operator.crds.yaml
 
 # 安装 Operator
-kubectl apply -f https://github.com/StringKe/cloudflare-operator/releases/download/v0.17.9/cloudflare-operator.yaml
+kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/download/v0.17.9/cloudflare-operator.yaml
 
 # 等待 Operator 就绪
 kubectl wait --for=condition=Available deployment/cloudflare-operator-controller-manager -n cloudflare-operator-system --timeout=120s

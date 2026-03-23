@@ -139,16 +139,16 @@ spec:
   - warp
   links:
   - name: Cloudflare Operator
-    url: https://github.com/StringKe/cloudflare-operator
+    url: https://github.com/0ekk/cloudflare-operator
   - name: Cloudflare Zero Trust Documentation
     url: https://developers.cloudflare.com/cloudflare-one/
   maintainers:
   - email: me@adyanth.dev
     name: adyanth
-  - email: stringke.me@gmail.com
-    name: StringKe
+  - email: ekkotuz@gmail.com
+    name: 0ekk
   maturity: alpha
   provider:
-    name: StringKe
-    url: https://github.com/StringKe/cloudflare-operator
+    name: 0ekk
+    url: https://github.com/0ekk/cloudflare-operator
   version: 0.0.0

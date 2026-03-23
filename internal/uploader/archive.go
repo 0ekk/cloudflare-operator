@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // ExtractArchive extracts files from archive data.

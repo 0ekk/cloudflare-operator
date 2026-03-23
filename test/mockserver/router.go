@@ -6,7 +6,7 @@ package mockserver
 import (
 	"net/http"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/handlers"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/handlers"
 )
 
 // apiPrefix is the Cloudflare API path prefix.

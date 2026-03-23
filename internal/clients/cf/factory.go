@@ -47,6 +47,7 @@ func (*DefaultClientFactory) NewClient(config ClientConfig) (CloudflareClient, e
 	if baseURL := GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(NewAPIHTTPClient()))
 
 	switch {
 	case config.APIToken != "":
@@ -61,6 +62,11 @@ func (*DefaultClientFactory) NewClient(config ClientConfig) (CloudflareClient, e
 		return nil, err
 	}
 
+	cfClientV6, err := createCloudflareV6ClientFromConfig(config.APIToken, config.APIKey, config.Email)
+	if err != nil {
+		return nil, err
+	}
+
 	return &API{
 		Log:              config.Log,
 		AccountId:        config.AccountID,
@@ -69,6 +75,7 @@ func (*DefaultClientFactory) NewClient(config ClientConfig) (CloudflareClient, e
 		TunnelId:         config.TunnelID,
 		TunnelName:       config.TunnelName,
 		CloudflareClient: cfClient,
+		CloudflareV6:     cfClientV6,
 		APIToken:         config.APIToken,
 		APIKey:           config.APIKey,
 		APIEmail:         config.Email,

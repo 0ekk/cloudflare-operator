@@ -6,7 +6,7 @@ package controller
 import (
 	"context"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -19,7 +19,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // ClusterTunnelReconciler reconciles a ClusterTunnel object

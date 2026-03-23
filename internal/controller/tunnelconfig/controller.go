@@ -21,9 +21,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller/common"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller/common"
 )
 
 // Reconciler reconciles tunnel configuration stored in ConfigMaps.
@@ -195,12 +195,12 @@ func (*Reconciler) buildCloudflareConfig(config *TunnelConfig) cloudflare.Tunnel
 		cfConfig.Ingress = append(cfConfig.Ingress, cfRule)
 	}
 
-	// Add catch-all rule if we have any rules
-	if len(cfConfig.Ingress) > 0 {
-		cfConfig.Ingress = append(cfConfig.Ingress, cloudflare.UnvalidatedIngressRule{
-			Service: "http_status:404",
-		})
-	}
+	// Cloudflare tunnel config requires at least one ingress rule.
+	// Always append a catch-all fallback so "delete all published app routes"
+	// can still be synced as a valid configuration.
+	cfConfig.Ingress = append(cfConfig.Ingress, cloudflare.UnvalidatedIngressRule{
+		Service: "http_status:404",
+	})
 
 	return cfConfig
 }

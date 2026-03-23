@@ -18,7 +18,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: stringke/cloudflare-operator
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # Build Docker images using matrix for native builds (faster than QEMU)

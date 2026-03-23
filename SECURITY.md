@@ -24,16 +24,16 @@ Instead, please use one of the following methods:
 请采用以下方式之一：
 
 1. **GitHub Private Vulnerability Reporting (Recommended)**
-   Report directly via: <https://github.com/StringKe/cloudflare-operator/security/advisories/new>
+   Report directly via: <https://github.com/0ekk/cloudflare-operator/security/advisories/new>
 
    **GitHub 私密漏洞报告（推荐）**
-   直接通过以下链接报告：<https://github.com/StringKe/cloudflare-operator/security/advisories/new>
+   直接通过以下链接报告：<https://github.com/0ekk/cloudflare-operator/security/advisories/new>
 
 2. **Email**
-   Send vulnerability details to: **stringke.me@gmail.com**
+   Send vulnerability details to: **ekkotuz@gmail.com**
 
    **邮件**
-   将漏洞详情发送至：**stringke.me@gmail.com**
+   将漏洞详情发送至：**ekkotuz@gmail.com**
 
 ### What to Include / 需包含的信息
 

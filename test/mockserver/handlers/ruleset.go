@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/models"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/models"
 )
 
 // RulesetCreateRequest represents a ruleset creation request.

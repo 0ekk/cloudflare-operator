@@ -21,11 +21,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
-	"github.com/StringKe/cloudflare-operator/internal/controller/common"
-	"github.com/StringKe/cloudflare-operator/internal/controller/refs"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
+	"github.com/0ekk/cloudflare-operator/internal/controller/common"
+	"github.com/0ekk/cloudflare-operator/internal/controller/refs"
 )
 
 const (

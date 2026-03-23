@@ -1,4 +1,4 @@
-module github.com/StringKe/cloudflare-operator
+module github.com/0ekk/cloudflare-operator
 
 go 1.25.0
 
@@ -8,6 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.57
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.76.1
 	github.com/cloudflare/cloudflare-go v0.116.0
+	github.com/cloudflare/cloudflare-go/v6 v6.8.0
 	github.com/go-logr/logr v1.4.3
 	github.com/google/go-containerregistry v0.20.2
 	github.com/onsi/ginkgo/v2 v2.27.4
@@ -101,6 +102,10 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
+	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

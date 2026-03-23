@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/internal/store"
-	"github.com/StringKe/cloudflare-operator/test/mockserver/models"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/internal/store"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/models"
 )
 
 // Handlers provides HTTP handlers for the mock API.

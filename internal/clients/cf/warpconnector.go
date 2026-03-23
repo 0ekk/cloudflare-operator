@@ -7,8 +7,11 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/cloudflare/cloudflare-go"
+	cloudflarev6 "github.com/cloudflare/cloudflare-go/v6"
+	"github.com/cloudflare/cloudflare-go/v6/zero_trust"
 )
 
 // WARPConnectorResult contains the result of a WARP Connector operation.
@@ -37,6 +40,44 @@ func (c *API) CreateWARPConnector(ctx context.Context, name string) (*WARPConnec
 		return nil, err
 	}
 	tunnelSecret := base64.StdEncoding.EncodeToString(randSecret)
+
+	if c.CloudflareV6 != nil {
+		tunnel, err := c.CloudflareV6.ZeroTrust.Tunnels.WARPConnector.New(
+			ctx,
+			zero_trust.TunnelWARPConnectorNewParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				Name:      cloudflarev6.F(name),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error creating WARP connector", "name", name)
+			return nil, err
+		}
+
+		tokenResult, err := c.CloudflareV6.ZeroTrust.Tunnels.WARPConnector.Token.Get(
+			ctx,
+			tunnel.ID,
+			zero_trust.TunnelWARPConnectorTokenGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting tunnel token", "id", tunnel.ID)
+			return nil, err
+		}
+		if tokenResult == nil {
+			return nil, fmt.Errorf("empty WARP connector token response for connector %s", tunnel.ID)
+		}
+
+		c.Log.Info("WARP Connector created", "id", tunnel.ID, "name", tunnel.Name)
+
+		return &WARPConnectorResult{
+			ID:          tunnel.ID,
+			TunnelID:    tunnel.ID,
+			TunnelToken: *tokenResult,
+			Name:        tunnel.Name,
+		}, nil
+	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
@@ -76,6 +117,26 @@ func (c *API) GetWARPConnectorToken(ctx context.Context, connectorID string) (*W
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil {
+		token, err := c.CloudflareV6.ZeroTrust.Tunnels.WARPConnector.Token.Get(
+			ctx,
+			connectorID,
+			zero_trust.TunnelWARPConnectorTokenGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting WARP connector token", "id", connectorID)
+			return nil, err
+		}
+		if token == nil {
+			return nil, fmt.Errorf("empty WARP connector token response for connector %s", connectorID)
+		}
+		return &WARPConnectorTokenResult{
+			Token: *token,
+		}, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	token, err := c.CloudflareClient.GetTunnelToken(ctx, rc, connectorID)
@@ -95,6 +156,27 @@ func (c *API) DeleteWARPConnector(ctx context.Context, connectorID string) error
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return err
+	}
+
+	if c.CloudflareV6 != nil {
+		_, err := c.CloudflareV6.ZeroTrust.Tunnels.WARPConnector.Delete(
+			ctx,
+			connectorID,
+			zero_trust.TunnelWARPConnectorDeleteParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("WARP Connector already deleted (not found)", "id", connectorID)
+				return nil
+			}
+			c.Log.Error(err, "error deleting WARP connector", "id", connectorID)
+			return err
+		}
+
+		c.Log.Info("WARP Connector deleted", "id", connectorID)
+		return nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)

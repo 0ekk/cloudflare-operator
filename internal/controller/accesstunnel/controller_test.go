@@ -16,7 +16,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
 )
 
 var k8sClient client.Client

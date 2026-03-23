@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/StringKe/cloudflare-operator/test/e2e/framework"
+	"github.com/0ekk/cloudflare-operator/test/e2e/framework"
 )
 
 // TestE2E runs all E2E tests

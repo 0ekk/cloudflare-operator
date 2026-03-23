@@ -6,7 +6,7 @@ package controller
 import (
 	"fmt"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 )
 
 // AdoptionAnnotation is the annotation key for marking Cloudflare resources as managed

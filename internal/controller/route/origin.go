@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 )
 
 // OriginRequestBuilder helps build OriginRequestConfig from various sources.

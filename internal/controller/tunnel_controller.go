@@ -6,7 +6,7 @@ package controller
 import (
 	"context"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -19,7 +19,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/tools/record"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // TunnelReconciler reconciles a Tunnel object

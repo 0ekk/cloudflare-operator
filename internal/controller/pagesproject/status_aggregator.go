@@ -6,8 +6,8 @@ package pagesproject
 import (
 	"context"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
 )
 
 // aggregateVersionStatus aggregates status from all managed deployments.

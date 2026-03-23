@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/cloudflare/cloudflare-go"
+	cloudflarev6 "github.com/cloudflare/cloudflare-go/v6"
+	"github.com/cloudflare/cloudflare-go/v6/zero_trust"
 	"github.com/go-logr/logr"
 	"k8s.io/utils/ptr"
 )
@@ -30,6 +32,7 @@ type API struct {
 	ValidZoneId      string
 	ValidDomainName  string // Domain name corresponding to ValidZoneId
 	CloudflareClient *cloudflare.API
+	CloudflareV6     *cloudflarev6.Client
 	APIToken         string // API Token for direct API calls (e.g., Pages Direct Upload)
 	APIKey           string // Global API Key for direct API calls
 	APIEmail         string // Email for Global API Key authentication
@@ -63,6 +66,35 @@ func (c *API) CreateTunnel(ctx context.Context) (string, string, error) {
 		return "", "", err
 	}
 	tunnelSecret := base64.StdEncoding.EncodeToString(randSecret)
+
+	if c.CloudflareV6 != nil {
+		tunnel, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.New(
+			ctx,
+			zero_trust.TunnelCloudflaredNewParams{
+				AccountID:    cloudflarev6.F(c.ValidAccountId),
+				Name:         cloudflarev6.F(c.TunnelName),
+				ConfigSrc:    cloudflarev6.F(zero_trust.TunnelCloudflaredNewParamsConfigSrcCloudflare),
+				TunnelSecret: cloudflarev6.F(tunnelSecret),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error creating tunnel")
+			return "", "", err
+		}
+
+		c.ValidTunnelId = tunnel.ID
+		c.ValidTunnelName = tunnel.Name
+
+		credentialsFile := TunnelCredentialsFile{
+			AccountTag:   c.ValidAccountId,
+			TunnelID:     tunnel.ID,
+			TunnelName:   tunnel.Name,
+			TunnelSecret: tunnelSecret,
+		}
+
+		creds, err := json.Marshal(credentialsFile)
+		return tunnel.ID, string(creds), err
+	}
 
 	params := cloudflare.TunnelCreateParams{
 		Name:   c.TunnelName,
@@ -112,6 +144,27 @@ func (c *API) DeleteTunnel(ctx context.Context) error {
 		}
 		c.Log.Error(err, "Error validating tunnel ID for deletion")
 		return err
+	}
+
+	if c.CloudflareV6 != nil {
+		_, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Delete(
+			ctx,
+			c.ValidTunnelId,
+			zero_trust.TunnelCloudflaredDeleteParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("Tunnel already deleted (not found)", "tunnelId", c.ValidTunnelId)
+				return nil
+			}
+			c.Log.Error(err, "error deleting tunnel", "tunnelId", c.TunnelId)
+			return err
+		}
+
+		c.Log.Info("Tunnel deleted successfully", "tunnelId", c.ValidTunnelId)
+		return nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -265,6 +318,22 @@ func (c *API) validateTunnelId(ctx context.Context) bool {
 		return false
 	}
 
+	if c.CloudflareV6 != nil {
+		tunnel, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Get(
+			ctx,
+			c.TunnelId,
+			zero_trust.TunnelCloudflaredGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error retrieving tunnel", "tunnelId", c.TunnelId)
+			return false
+		}
+		c.ValidTunnelName = tunnel.Name
+		return tunnel.ID == c.TunnelId
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 	tunnel, err := c.CloudflareClient.GetTunnel(ctx, rc, c.TunnelId)
 	if err != nil {
@@ -280,6 +349,44 @@ func (c *API) getTunnelIdByName(ctx context.Context) (string, error) {
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error in getting account ID")
 		return "", err
+	}
+
+	if c.CloudflareV6 != nil {
+		activeTunnelIDs := make([]string, 0)
+		activeTunnelNames := make([]string, 0)
+		pager := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.ListAutoPaging(
+			ctx,
+			zero_trust.TunnelCloudflaredListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				Name:      cloudflarev6.F(c.TunnelName),
+				IsDeleted: cloudflarev6.F(false),
+			},
+		)
+		for pager.Next() {
+			tunnel := pager.Current()
+			if tunnel.Name == c.TunnelName && tunnel.DeletedAt.IsZero() {
+				activeTunnelIDs = append(activeTunnelIDs, tunnel.ID)
+				activeTunnelNames = append(activeTunnelNames, tunnel.Name)
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnels by name", "tunnelName", c.TunnelName)
+			return "", err
+		}
+
+		switch len(activeTunnelIDs) {
+		case 0:
+			err := fmt.Errorf("no tunnel in response")
+			c.Log.Error(err, "found no tunnel, check tunnelName", "tunnelName", c.TunnelName)
+			return "", err
+		case 1:
+			c.ValidTunnelName = activeTunnelNames[0]
+			return activeTunnelIDs[0], nil
+		default:
+			err := fmt.Errorf("more than one tunnel in response")
+			c.Log.Error(err, "found more than one tunnel, check tunnelName", "tunnelName", c.TunnelName)
+			return "", err
+		}
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -575,6 +682,25 @@ func (c *API) GetTunnelToken(ctx context.Context, tunnelID string) (string, erro
 		return "", err
 	}
 
+	if c.CloudflareV6 != nil {
+		token, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Token.Get(
+			ctx,
+			tunnelID,
+			zero_trust.TunnelCloudflaredTokenGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting tunnel token", "tunnelId", tunnelID)
+			return "", err
+		}
+		if token == nil {
+			return "", fmt.Errorf("empty tunnel token response for tunnel %s", tunnelID)
+		}
+		c.Log.V(1).Info("Got tunnel token", "tunnelId", tunnelID)
+		return *token, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	token, err := c.CloudflareClient.GetTunnelToken(ctx, rc, tunnelID)
@@ -667,6 +793,35 @@ func (c *API) CreateTunnelWithParams(ctx context.Context, tunnelName, configSrc 
 		configSrc = "cloudflare"
 	}
 
+	if c.CloudflareV6 != nil {
+		tunnel, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.New(
+			ctx,
+			zero_trust.TunnelCloudflaredNewParams{
+				AccountID:    cloudflarev6.F(c.ValidAccountId),
+				Name:         cloudflarev6.F(tunnelName),
+				ConfigSrc:    cloudflarev6.F(zero_trust.TunnelCloudflaredNewParamsConfigSrc(configSrc)),
+				TunnelSecret: cloudflarev6.F(tunnelSecret),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error creating tunnel", "name", tunnelName)
+			return nil, err
+		}
+
+		c.Log.Info("Tunnel created successfully", "tunnelId", tunnel.ID, "tunnelName", tunnel.Name)
+
+		return &TunnelCreateResult{
+			ID:   tunnel.ID,
+			Name: tunnel.Name,
+			Credentials: &TunnelCredentialsFile{
+				AccountTag:   c.ValidAccountId,
+				TunnelID:     tunnel.ID,
+				TunnelName:   tunnel.Name,
+				TunnelSecret: tunnelSecret,
+			},
+		}, nil
+	}
+
 	params := cloudflare.TunnelCreateParams{
 		Name:      tunnelName,
 		Secret:    tunnelSecret,
@@ -701,6 +856,27 @@ func (c *API) DeleteTunnelByID(ctx context.Context, tunnelID string) error {
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error validating account ID for tunnel deletion")
 		return err
+	}
+
+	if c.CloudflareV6 != nil {
+		_, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Delete(
+			ctx,
+			tunnelID,
+			zero_trust.TunnelCloudflaredDeleteParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("Tunnel already deleted (not found)", "tunnelId", tunnelID)
+				return nil
+			}
+			c.Log.Error(err, "error deleting tunnel", "tunnelId", tunnelID)
+			return err
+		}
+
+		c.Log.Info("Tunnel deleted successfully", "tunnelId", tunnelID)
+		return nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -739,6 +915,29 @@ func (c *API) GetTunnelIDByName(ctx context.Context, tunnelName string) (string,
 		return "", err
 	}
 
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.ListAutoPaging(
+			ctx,
+			zero_trust.TunnelCloudflaredListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				Name:      cloudflarev6.F(tunnelName),
+				IsDeleted: cloudflarev6.F(false),
+			},
+		)
+		for pager.Next() {
+			tunnel := pager.Current()
+			if tunnel.Name == tunnelName && tunnel.DeletedAt.IsZero() {
+				c.Log.V(1).Info("Found tunnel by name", "name", tunnelName, "tunnelId", tunnel.ID)
+				return tunnel.ID, nil
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnels by name", "name", tunnelName)
+			return "", err
+		}
+		return "", fmt.Errorf("tunnel not found: %s", tunnelName)
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	params := cloudflare.TunnelListParams{
@@ -769,6 +968,26 @@ func (c *API) GetTunnelCredsByID(ctx context.Context, tunnelID string) (*TunnelC
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID for tunnel credentials")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		tunnel, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Get(
+			ctx,
+			tunnelID,
+			zero_trust.TunnelCloudflaredGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting tunnel details", "tunnelId", tunnelID)
+			return nil, err
+		}
+		return &TunnelCredentialsFile{
+			AccountTag: c.ValidAccountId,
+			TunnelID:   tunnel.ID,
+			TunnelName: tunnel.Name,
+			// Note: TunnelSecret is not available for existing tunnels
+		}, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)

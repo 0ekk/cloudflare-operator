@@ -36,7 +36,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 # Fork the repository on GitHub, then:
 git clone https://github.com/<your-username>/cloudflare-operator.git
 cd cloudflare-operator
-git remote add upstream https://github.com/StringKe/cloudflare-operator.git
+git remote add upstream https://github.com/0ekk/cloudflare-operator.git
 ```
 
 ## Development Setup / 开发环境设置
@@ -69,6 +69,9 @@ make install
 
 # Run the operator locally (outside cluster)
 make run
+
+# If you need to test webhooks locally, enable them explicitly and provide TLS certs
+ENABLE_WEBHOOKS=true go run ./cmd/main.go --webhook-cert-path=/path/to/certs
 
 # Or run with delve debugger
 make debug

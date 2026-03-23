@@ -5,8 +5,8 @@
 package tunnel
 
 import (
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/service"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/service"
 )
 
 // LifecycleAction defines the action to perform on a tunnel

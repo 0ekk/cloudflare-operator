@@ -16,7 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // S3Uploader downloads files from S3-compatible storage.

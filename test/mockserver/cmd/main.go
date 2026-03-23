@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver"
+	"github.com/0ekk/cloudflare-operator/test/mockserver"
 )
 
 func main() {

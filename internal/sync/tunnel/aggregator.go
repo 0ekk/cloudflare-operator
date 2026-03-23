@@ -11,8 +11,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	tunnelsvc "github.com/StringKe/cloudflare-operator/internal/service/tunnel"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	tunnelsvc "github.com/0ekk/cloudflare-operator/internal/service/tunnel"
 )
 
 // AggregatedConfig represents the final merged Tunnel configuration.

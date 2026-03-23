@@ -27,8 +27,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/test/mockserver"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/test/mockserver"
 )
 
 const (
@@ -47,7 +47,7 @@ const (
 	// MockServerName is the name of the mock server deployment/service
 	MockServerName = "mockserver"
 	// MockServerImage is the Docker image for the mock server
-	MockServerImage = "ghcr.io/stringke/cloudflare-operator-mockserver:e2e"
+	MockServerImage = "ghcr.io/0ekk/cloudflare-operator-mockserver:e2e"
 	// MockServerPort is the port the mock server listens on
 	MockServerPort = 8787
 )

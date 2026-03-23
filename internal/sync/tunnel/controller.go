@@ -15,10 +15,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	tunnelsvc "github.com/StringKe/cloudflare-operator/internal/service/tunnel"
-	"github.com/StringKe/cloudflare-operator/internal/sync/common"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	tunnelsvc "github.com/0ekk/cloudflare-operator/internal/service/tunnel"
+	"github.com/0ekk/cloudflare-operator/internal/sync/common"
 )
 
 const (

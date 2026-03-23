@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/injection"
-	"github.com/StringKe/cloudflare-operator/test/mockserver/internal/store"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/injection"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/internal/store"
 )
 
 // Server is the mock Cloudflare API server.

@@ -7,7 +7,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 )
 
 // Builder is an interface for building cloudflared ingress rules.

@@ -8,7 +8,7 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
 )
 
 // Standard requeue intervals for controllers.

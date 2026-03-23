@@ -10,7 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 func createSyncStateWithType(resourceType v1alpha2.SyncResourceType) *v1alpha2.CloudflareSyncState {

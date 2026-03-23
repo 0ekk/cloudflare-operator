@@ -7,7 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // PredicateForResourceType creates a predicate that filters CloudflareSyncState

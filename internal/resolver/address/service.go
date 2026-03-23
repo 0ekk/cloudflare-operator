@@ -10,7 +10,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // resolveService extracts addresses from a Kubernetes Service.

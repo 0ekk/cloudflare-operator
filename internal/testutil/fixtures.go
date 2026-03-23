@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha1"
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha1"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // TestNamespace is the default namespace for tests.

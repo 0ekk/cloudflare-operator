@@ -6,7 +6,7 @@ package pagesdeployment
 import (
 	"strings"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // Condition types for PagesDeployment

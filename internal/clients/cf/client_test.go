@@ -9,8 +9,8 @@ import (
 
 	"go.uber.org/mock/gomock"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf/mock"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf/mock"
 )
 
 func TestCloudflareClientInterface(t *testing.T) {

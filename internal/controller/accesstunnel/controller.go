@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/k8s"
+	"github.com/0ekk/cloudflare-operator/internal/clients/k8s"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,7 +26,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
 )
 
 const containerPort int32 = 8000

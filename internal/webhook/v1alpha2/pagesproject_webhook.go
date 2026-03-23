@@ -6,7 +6,7 @@ package v1alpha2
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // SetupPagesProjectWebhookWithManager registers the webhook for PagesProject in the manager.

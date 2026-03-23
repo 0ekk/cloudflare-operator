@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2025-2026 The Cloudflare Operator Authors
 
-//go:generate mockgen -destination=mock/mock_client.go -package=mock github.com/StringKe/cloudflare-operator/internal/clients/cf CloudflareClient
+//go:generate mockgen -destination=mock/mock_client.go -package=mock github.com/0ekk/cloudflare-operator/internal/clients/cf CloudflareClient
 
 package cf
 

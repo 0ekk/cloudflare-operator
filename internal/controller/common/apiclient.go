@@ -14,9 +14,9 @@ import (
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/credentials"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/credentials"
 )
 
 // APIClientFactory creates and caches Cloudflare API clients.
@@ -197,6 +197,7 @@ func createCloudflareClient(creds *credentials.Credentials) (*cloudflare.API, er
 	if baseURL := cf.GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(cf.NewAPIHTTPClient()))
 
 	switch creds.AuthType {
 	case networkingv1alpha2.AuthTypeAPIToken:

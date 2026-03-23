@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller/tunnelconfig"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller/tunnelconfig"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -27,8 +27,8 @@ import (
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 
 	"k8s.io/client-go/tools/record"
 )
@@ -167,11 +167,15 @@ func (r *TunnelBindingReconciler) createTemporaryAPIClient() (*cf.API, error) {
 		return nil, fmt.Errorf("failed to create API client: %w", err)
 	}
 
-	// Set the accountID and domain from resolved values
-	api.ValidAccountId = r.accountID
-	api.Domain = r.domain
+	applyResolvedAPIContext(api, r.accountID, r.domain, r.tunnelID)
 
 	return api, nil
+}
+
+func applyResolvedAPIContext(api *cf.API, accountID, domain, tunnelID string) {
+	api.ValidAccountId = accountID
+	api.Domain = domain
+	api.ValidTunnelId = tunnelID
 }
 
 // +kubebuilder:rbac:groups=networking.cloudflare-operator.io,resources=tunnelbindings,verbs=get;list;watch;create;update;patch;delete

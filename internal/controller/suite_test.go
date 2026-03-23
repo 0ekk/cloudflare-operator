@@ -22,8 +22,8 @@ import (
 
 	networkingv1 "k8s.io/api/networking/v1"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 	// +kubebuilder:scaffold:imports
 )
 

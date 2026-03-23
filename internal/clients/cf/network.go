@@ -8,6 +8,8 @@ import (
 	"fmt"
 
 	"github.com/cloudflare/cloudflare-go"
+	cloudflarev6 "github.com/cloudflare/cloudflare-go/v6"
+	"github.com/cloudflare/cloudflare-go/v6/zero_trust"
 )
 
 // VirtualNetworkParams contains parameters for creating or updating a Virtual Network.
@@ -50,6 +52,29 @@ func (c *API) CreateVirtualNetwork(ctx context.Context, params VirtualNetworkPar
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil {
+		vnet, err := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.New(
+			ctx,
+			zero_trust.NetworkVirtualNetworkNewParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				Name:             cloudflarev6.F(params.Name),
+				Comment:          cloudflarev6.F(params.Comment),
+				IsDefaultNetwork: cloudflarev6.F(params.IsDefaultNetwork),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error creating virtual network", "name", params.Name)
+			return nil, err
+		}
+		c.Log.Info("Virtual Network created successfully", "id", vnet.ID, "name", vnet.Name)
+		return &VirtualNetworkResult{
+			ID:               vnet.ID,
+			Name:             vnet.Name,
+			Comment:          vnet.Comment,
+			IsDefaultNetwork: vnet.IsDefaultNetwork,
+		}, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	createParams := cloudflare.TunnelVirtualNetworkCreateParams{
@@ -79,6 +104,32 @@ func (c *API) GetVirtualNetwork(ctx context.Context, virtualNetworkID string) (*
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		vnet, err := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.Get(
+			ctx,
+			virtualNetworkID,
+			zero_trust.NetworkVirtualNetworkGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting virtual network", "id", virtualNetworkID)
+			return nil, err
+		}
+		var deletedAt *string
+		if !vnet.DeletedAt.IsZero() {
+			deletedStr := vnet.DeletedAt.String()
+			deletedAt = &deletedStr
+		}
+		return &VirtualNetworkResult{
+			ID:               vnet.ID,
+			Name:             vnet.Name,
+			Comment:          vnet.Comment,
+			IsDefaultNetwork: vnet.IsDefaultNetwork,
+			DeletedAt:        deletedAt,
+		}, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -121,6 +172,33 @@ func (c *API) GetVirtualNetworkByName(ctx context.Context, name string) (*Virtua
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkVirtualNetworkListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				Name:      cloudflarev6.F(name),
+				IsDeleted: cloudflarev6.F(false),
+			},
+		)
+		for pager.Next() {
+			vnet := pager.Current()
+			if vnet.Name == name && vnet.DeletedAt.IsZero() {
+				return &VirtualNetworkResult{
+					ID:               vnet.ID,
+					Name:             vnet.Name,
+					Comment:          vnet.Comment,
+					IsDefaultNetwork: vnet.IsDefaultNetwork,
+				}, nil
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing virtual networks by name", "name", name)
+			return nil, err
+		}
+		return nil, fmt.Errorf("virtual network not found: %s", name)
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	params := cloudflare.TunnelVirtualNetworksListParams{
@@ -151,6 +229,31 @@ func (c *API) UpdateVirtualNetwork(ctx context.Context, virtualNetworkID string,
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		vnet, err := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.Edit(
+			ctx,
+			virtualNetworkID,
+			zero_trust.NetworkVirtualNetworkEditParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				Name:             cloudflarev6.F(params.Name),
+				Comment:          cloudflarev6.F(params.Comment),
+				IsDefaultNetwork: cloudflarev6.F(params.IsDefaultNetwork),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error updating virtual network", "id", virtualNetworkID, "name", params.Name)
+			return nil, err
+		}
+
+		c.Log.Info("Virtual Network updated successfully", "id", vnet.ID, "name", vnet.Name)
+		return &VirtualNetworkResult{
+			ID:               vnet.ID,
+			Name:             vnet.Name,
+			Comment:          vnet.Comment,
+			IsDefaultNetwork: vnet.IsDefaultNetwork,
+		}, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -186,6 +289,27 @@ func (c *API) DeleteVirtualNetwork(ctx context.Context, virtualNetworkID string)
 		return err
 	}
 
+	if c.CloudflareV6 != nil {
+		_, err := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.Delete(
+			ctx,
+			virtualNetworkID,
+			zero_trust.NetworkVirtualNetworkDeleteParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("Virtual Network already deleted (not found)", "id", virtualNetworkID)
+				return nil
+			}
+			c.Log.Error(err, "error deleting virtual network", "id", virtualNetworkID)
+			return err
+		}
+
+		c.Log.Info("Virtual Network deleted successfully", "id", virtualNetworkID)
+		return nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	err := c.CloudflareClient.DeleteTunnelVirtualNetwork(ctx, rc, virtualNetworkID)
@@ -208,6 +332,33 @@ func (c *API) GetDefaultVirtualNetwork(ctx context.Context) (*VirtualNetworkResu
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkVirtualNetworkListParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				IsDefaultNetwork: cloudflarev6.F(true),
+				IsDeleted:        cloudflarev6.F(false),
+			},
+		)
+		for pager.Next() {
+			vnet := pager.Current()
+			if vnet.IsDefaultNetwork && vnet.DeletedAt.IsZero() {
+				return &VirtualNetworkResult{
+					ID:               vnet.ID,
+					Name:             vnet.Name,
+					Comment:          vnet.Comment,
+					IsDefaultNetwork: true,
+				}, nil
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing virtual networks for default")
+			return nil, err
+		}
+		return nil, fmt.Errorf("no default virtual network found for account %s", c.ValidAccountId)
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -245,6 +396,34 @@ func (c *API) ListVirtualNetworks(ctx context.Context) ([]VirtualNetworkResult, 
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.VirtualNetworks.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkVirtualNetworkListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				IsDeleted: cloudflarev6.F(false),
+			},
+		)
+		results := make([]VirtualNetworkResult, 0)
+		for pager.Next() {
+			vnet := pager.Current()
+			if !vnet.DeletedAt.IsZero() {
+				continue
+			}
+			results = append(results, VirtualNetworkResult{
+				ID:               vnet.ID,
+				Name:             vnet.Name,
+				Comment:          vnet.Comment,
+				IsDefaultNetwork: vnet.IsDefaultNetwork,
+			})
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing virtual networks")
+			return nil, err
+		}
+		return results, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	vnets, err := c.CloudflareClient.ListTunnelVirtualNetworks(ctx, rc, cloudflare.TunnelVirtualNetworksListParams{})
@@ -274,6 +453,30 @@ func (c *API) CreateTunnelRoute(ctx context.Context, params TunnelRouteParams) (
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		route, err := c.CloudflareV6.ZeroTrust.Networks.Routes.New(
+			ctx,
+			zero_trust.NetworkRouteNewParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				TunnelID:         cloudflarev6.F(params.TunnelID),
+				Network:          cloudflarev6.F(params.Network),
+				VirtualNetworkID: cloudflarev6.F(params.VirtualNetworkID),
+				Comment:          cloudflarev6.F(params.Comment),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error creating tunnel route", "network", params.Network, "tunnelId", params.TunnelID)
+			return nil, err
+		}
+		c.Log.Info("Tunnel Route created successfully", "network", route.Network, "tunnelId", route.TunnelID)
+		return &TunnelRouteResult{
+			Network:          route.Network,
+			TunnelID:         route.TunnelID,
+			VirtualNetworkID: route.VirtualNetworkID,
+			Comment:          route.Comment,
+		}, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -307,6 +510,33 @@ func (c *API) GetTunnelRoute(ctx context.Context, network, virtualNetworkID stri
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.Routes.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkRouteListParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				VirtualNetworkID: cloudflarev6.F(virtualNetworkID),
+			},
+		)
+		for pager.Next() {
+			route := pager.Current()
+			if route.Network == network {
+				return &TunnelRouteResult{
+					Network:          route.Network,
+					TunnelID:         route.TunnelID,
+					TunnelName:       route.TunnelName,
+					VirtualNetworkID: route.VirtualNetworkID,
+					Comment:          route.Comment,
+				}, nil
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnel routes", "virtualNetworkId", virtualNetworkID)
+			return nil, err
+		}
+		return nil, fmt.Errorf("tunnel route not found for network %s in virtual network %s", network, virtualNetworkID)
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -360,6 +590,33 @@ func (c *API) ListTunnelRoutesByNetwork(ctx context.Context, network string) ([]
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.Routes.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkRouteListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		results := make([]TunnelRouteResult, 0)
+		for pager.Next() {
+			route := pager.Current()
+			if route.Network == network {
+				results = append(results, TunnelRouteResult{
+					Network:          route.Network,
+					TunnelID:         route.TunnelID,
+					TunnelName:       route.TunnelName,
+					VirtualNetworkID: route.VirtualNetworkID,
+					Comment:          route.Comment,
+				})
+			}
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnel routes for network search", "network", network)
+			return nil, err
+		}
+		return results, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	// Use NetworkSubset to find exact match or containing routes
@@ -393,6 +650,35 @@ func (c *API) UpdateTunnelRoute(ctx context.Context, network string, params Tunn
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		routeID, _, err := c.findNetworkRouteID(ctx, network, params.VirtualNetworkID)
+		if err != nil {
+			return nil, err
+		}
+		route, err := c.CloudflareV6.ZeroTrust.Networks.Routes.Edit(
+			ctx,
+			routeID,
+			zero_trust.NetworkRouteEditParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				TunnelID:         cloudflarev6.F(params.TunnelID),
+				Network:          cloudflarev6.F(params.Network),
+				VirtualNetworkID: cloudflarev6.F(params.VirtualNetworkID),
+				Comment:          cloudflarev6.F(params.Comment),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error updating tunnel route", "network", network)
+			return nil, err
+		}
+		c.Log.Info("Tunnel Route updated successfully", "network", route.Network)
+		return &TunnelRouteResult{
+			Network:          route.Network,
+			TunnelID:         route.TunnelID,
+			VirtualNetworkID: route.VirtualNetworkID,
+			Comment:          route.Comment,
+		}, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -429,6 +715,35 @@ func (c *API) DeleteTunnelRoute(ctx context.Context, network, virtualNetworkID s
 		return err
 	}
 
+	if c.CloudflareV6 != nil {
+		routeID, _, err := c.findNetworkRouteID(ctx, network, virtualNetworkID)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("Tunnel Route already deleted (not found)", "network", network, "virtualNetworkId", virtualNetworkID)
+				return nil
+			}
+			return err
+		}
+		_, err = c.CloudflareV6.ZeroTrust.Networks.Routes.Delete(
+			ctx,
+			routeID,
+			zero_trust.NetworkRouteDeleteParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			if IsNotFoundError(err) {
+				c.Log.Info("Tunnel Route already deleted (not found)", "network", network, "virtualNetworkId", virtualNetworkID)
+				return nil
+			}
+			c.Log.Error(err, "error deleting tunnel route", "network", network, "virtualNetworkId", virtualNetworkID)
+			return err
+		}
+
+		c.Log.Info("Tunnel Route deleted successfully", "network", network)
+		return nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	params := cloudflare.TunnelRoutesDeleteParams{
@@ -456,6 +771,32 @@ func (c *API) ListTunnelRoutesByTunnelID(ctx context.Context, tunnelID string) (
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.Routes.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkRouteListParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				TunnelID:  cloudflarev6.F(tunnelID),
+			},
+		)
+		results := make([]TunnelRouteResult, 0)
+		for pager.Next() {
+			route := pager.Current()
+			results = append(results, TunnelRouteResult{
+				Network:          route.Network,
+				TunnelID:         route.TunnelID,
+				TunnelName:       route.TunnelName,
+				VirtualNetworkID: route.VirtualNetworkID,
+				Comment:          route.Comment,
+			})
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnel routes by tunnel ID", "tunnelId", tunnelID)
+			return nil, err
+		}
+		return results, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -490,6 +831,32 @@ func (c *API) ListTunnelRoutesByVirtualNetworkID(ctx context.Context, virtualNet
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		pager := c.CloudflareV6.ZeroTrust.Networks.Routes.ListAutoPaging(
+			ctx,
+			zero_trust.NetworkRouteListParams{
+				AccountID:        cloudflarev6.F(c.ValidAccountId),
+				VirtualNetworkID: cloudflarev6.F(virtualNetworkID),
+			},
+		)
+		results := make([]TunnelRouteResult, 0)
+		for pager.Next() {
+			route := pager.Current()
+			results = append(results, TunnelRouteResult{
+				Network:          route.Network,
+				TunnelID:         route.TunnelID,
+				TunnelName:       route.TunnelName,
+				VirtualNetworkID: route.VirtualNetworkID,
+				Comment:          route.Comment,
+			})
+		}
+		if err := pager.Err(); err != nil {
+			c.Log.Error(err, "error listing tunnel routes by virtual network ID", "virtualNetworkId", virtualNetworkID)
+			return nil, err
+		}
+		return results, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -576,4 +943,29 @@ func (c *API) DeleteTunnelRoutesByVirtualNetworkID(ctx context.Context, virtualN
 	}
 
 	return deletedCount, nil
+}
+
+func (c *API) findNetworkRouteID(ctx context.Context, network, virtualNetworkID string) (string, string, error) {
+	if c.CloudflareV6 == nil {
+		return "", "", fmt.Errorf("cloudflare v6 client not initialized")
+	}
+
+	pager := c.CloudflareV6.ZeroTrust.Networks.Routes.ListAutoPaging(
+		ctx,
+		zero_trust.NetworkRouteListParams{
+			AccountID:        cloudflarev6.F(c.ValidAccountId),
+			VirtualNetworkID: cloudflarev6.F(virtualNetworkID),
+		},
+	)
+	for pager.Next() {
+		route := pager.Current()
+		if route.Network == network && (virtualNetworkID == "" || route.VirtualNetworkID == virtualNetworkID) {
+			return route.ID, route.TunnelName, nil
+		}
+	}
+	if err := pager.Err(); err != nil {
+		c.Log.Error(err, "error listing tunnel routes", "network", network, "virtualNetworkId", virtualNetworkID)
+		return "", "", err
+	}
+	return "", "", fmt.Errorf("tunnel route not found for network %s in virtual network %s", network, virtualNetworkID)
 }

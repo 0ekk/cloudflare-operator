@@ -10,40 +10,40 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/internal/controller/accessapplication"
-	"github.com/StringKe/cloudflare-operator/internal/controller/accessgroup"
-	"github.com/StringKe/cloudflare-operator/internal/controller/accessidentityprovider"
-	"github.com/StringKe/cloudflare-operator/internal/controller/accesspolicy"
-	"github.com/StringKe/cloudflare-operator/internal/controller/accessservicetoken"
-	"github.com/StringKe/cloudflare-operator/internal/controller/accesstunnel"
-	"github.com/StringKe/cloudflare-operator/internal/controller/cloudflarecredentials"
-	"github.com/StringKe/cloudflare-operator/internal/controller/cloudflaredomain"
-	"github.com/StringKe/cloudflare-operator/internal/controller/deviceposturerule"
-	"github.com/StringKe/cloudflare-operator/internal/controller/devicesettingspolicy"
-	"github.com/StringKe/cloudflare-operator/internal/controller/dnsrecord"
-	"github.com/StringKe/cloudflare-operator/internal/controller/domainregistration"
-	"github.com/StringKe/cloudflare-operator/internal/controller/gateway"
-	"github.com/StringKe/cloudflare-operator/internal/controller/gatewayconfiguration"
-	"github.com/StringKe/cloudflare-operator/internal/controller/gatewaylist"
-	"github.com/StringKe/cloudflare-operator/internal/controller/gatewayrule"
-	"github.com/StringKe/cloudflare-operator/internal/controller/ingress"
-	"github.com/StringKe/cloudflare-operator/internal/controller/networkroute"
-	"github.com/StringKe/cloudflare-operator/internal/controller/origincacertificate"
-	"github.com/StringKe/cloudflare-operator/internal/controller/pagesdeployment"
-	"github.com/StringKe/cloudflare-operator/internal/controller/pagesdomain"
-	"github.com/StringKe/cloudflare-operator/internal/controller/pagesproject"
-	"github.com/StringKe/cloudflare-operator/internal/controller/pagespromotion"
-	"github.com/StringKe/cloudflare-operator/internal/controller/privateservice"
-	"github.com/StringKe/cloudflare-operator/internal/controller/r2bucket"
-	"github.com/StringKe/cloudflare-operator/internal/controller/r2bucketdomain"
-	"github.com/StringKe/cloudflare-operator/internal/controller/r2bucketnotification"
-	"github.com/StringKe/cloudflare-operator/internal/controller/redirectrule"
-	"github.com/StringKe/cloudflare-operator/internal/controller/transformrule"
-	"github.com/StringKe/cloudflare-operator/internal/controller/tunnelconfig"
-	"github.com/StringKe/cloudflare-operator/internal/controller/virtualnetwork"
-	"github.com/StringKe/cloudflare-operator/internal/controller/warpconnector"
-	"github.com/StringKe/cloudflare-operator/internal/controller/zoneruleset"
-	tunnelconfigsync "github.com/StringKe/cloudflare-operator/internal/sync/tunnel"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accessapplication"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accessgroup"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accessidentityprovider"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accesspolicy"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accessservicetoken"
+	"github.com/0ekk/cloudflare-operator/internal/controller/accesstunnel"
+	"github.com/0ekk/cloudflare-operator/internal/controller/cloudflarecredentials"
+	"github.com/0ekk/cloudflare-operator/internal/controller/cloudflaredomain"
+	"github.com/0ekk/cloudflare-operator/internal/controller/deviceposturerule"
+	"github.com/0ekk/cloudflare-operator/internal/controller/devicesettingspolicy"
+	"github.com/0ekk/cloudflare-operator/internal/controller/dnsrecord"
+	"github.com/0ekk/cloudflare-operator/internal/controller/domainregistration"
+	"github.com/0ekk/cloudflare-operator/internal/controller/gateway"
+	"github.com/0ekk/cloudflare-operator/internal/controller/gatewayconfiguration"
+	"github.com/0ekk/cloudflare-operator/internal/controller/gatewaylist"
+	"github.com/0ekk/cloudflare-operator/internal/controller/gatewayrule"
+	"github.com/0ekk/cloudflare-operator/internal/controller/ingress"
+	"github.com/0ekk/cloudflare-operator/internal/controller/networkroute"
+	"github.com/0ekk/cloudflare-operator/internal/controller/origincacertificate"
+	"github.com/0ekk/cloudflare-operator/internal/controller/pagesdeployment"
+	"github.com/0ekk/cloudflare-operator/internal/controller/pagesdomain"
+	"github.com/0ekk/cloudflare-operator/internal/controller/pagesproject"
+	"github.com/0ekk/cloudflare-operator/internal/controller/pagespromotion"
+	"github.com/0ekk/cloudflare-operator/internal/controller/privateservice"
+	"github.com/0ekk/cloudflare-operator/internal/controller/r2bucket"
+	"github.com/0ekk/cloudflare-operator/internal/controller/r2bucketdomain"
+	"github.com/0ekk/cloudflare-operator/internal/controller/r2bucketnotification"
+	"github.com/0ekk/cloudflare-operator/internal/controller/redirectrule"
+	"github.com/0ekk/cloudflare-operator/internal/controller/transformrule"
+	"github.com/0ekk/cloudflare-operator/internal/controller/tunnelconfig"
+	"github.com/0ekk/cloudflare-operator/internal/controller/virtualnetwork"
+	"github.com/0ekk/cloudflare-operator/internal/controller/warpconnector"
+	"github.com/0ekk/cloudflare-operator/internal/controller/zoneruleset"
+	tunnelconfigsync "github.com/0ekk/cloudflare-operator/internal/sync/tunnel"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -63,10 +63,11 @@ import (
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 	gatewayv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
-	webhooknetworkingv1alpha2 "github.com/StringKe/cloudflare-operator/internal/webhook/v1alpha2"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
+	"github.com/0ekk/cloudflare-operator/internal/controller/common"
+	webhooknetworkingv1alpha2 "github.com/0ekk/cloudflare-operator/internal/webhook/v1alpha2"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -98,6 +99,9 @@ func main() {
 	var metricsCertPath, metricsCertName, metricsCertKey string
 	var webhookCertPath, webhookCertName, webhookCertKey string
 	var enableLeaderElection bool
+	var leaderElectionLeaseDuration time.Duration
+	var leaderElectionRenewDeadline time.Duration
+	var leaderElectionRetryPeriod time.Duration
 	var probeAddr string
 	var clusterResourceNamespace string
 	var overwriteUnmanaged bool
@@ -112,6 +116,12 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", true,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.DurationVar(&leaderElectionLeaseDuration, "leader-election-lease-duration", 60*time.Second,
+		"Leader election lease duration.")
+	flag.DurationVar(&leaderElectionRenewDeadline, "leader-election-renew-deadline", 40*time.Second,
+		"Leader election renew deadline.")
+	flag.DurationVar(&leaderElectionRetryPeriod, "leader-election-retry-period", 15*time.Second,
+		"Leader election retry period.")
 	flag.BoolVar(&secureMetrics, "metrics-secure", true,
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.StringVar(&webhookCertPath, "webhook-cert-path", "", "The directory that contains the webhook certificate.")
@@ -130,6 +140,17 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	if leaderElectionRenewDeadline >= leaderElectionLeaseDuration {
+		setupLog.Error(nil, "invalid leader election settings: renew deadline must be less than lease duration",
+			"renewDeadline", leaderElectionRenewDeadline, "leaseDuration", leaderElectionLeaseDuration)
+		os.Exit(1)
+	}
+	if leaderElectionRetryPeriod >= leaderElectionRenewDeadline {
+		setupLog.Error(nil, "invalid leader election settings: retry period must be less than renew deadline",
+			"retryPeriod", leaderElectionRetryPeriod, "renewDeadline", leaderElectionRenewDeadline)
+		os.Exit(1)
+	}
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
 	// Use POD_NAMESPACE env var if cluster-resource-namespace is not explicitly set
@@ -139,6 +160,7 @@ func main() {
 			clusterResourceNamespace = "cloudflare-operator-system" // fallback default
 		}
 	}
+	common.SetOperatorNamespace(clusterResourceNamespace)
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -237,6 +259,9 @@ func main() {
 		LeaderElection:          enableLeaderElection,
 		LeaderElectionID:        "9f193cf8.cloudflare-operator.io",
 		LeaderElectionNamespace: clusterResourceNamespace,
+		LeaseDuration:           &leaderElectionLeaseDuration,
+		RenewDeadline:           &leaderElectionRenewDeadline,
+		RetryPeriod:             &leaderElectionRetryPeriod,
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -253,6 +278,14 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+
+	// Check Gateway API CRD availability once and reuse for all controller setup decisions.
+	crdChecker, err := controller.NewCRDChecker(ctrl.GetConfigOrDie())
+	if err != nil {
+		setupLog.Error(err, "unable to create CRD checker")
+		os.Exit(1)
+	}
+	gatewayAPIStatus := crdChecker.GetGatewayAPIStatus()
 
 	if err = (&controller.TunnelBindingReconciler{
 		Client:             mgr.GetClient(),
@@ -370,8 +403,9 @@ func main() {
 		os.Exit(1)
 	}
 	if err = (&dnsrecord.DNSRecordReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:              mgr.GetClient(),
+		Scheme:              mgr.GetScheme(),
+		GatewayAPIAvailable: gatewayAPIStatus.CoreAvailable(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DNSRecord")
 		os.Exit(1)
@@ -511,14 +545,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check if Gateway API CRDs are installed before registering Gateway API controllers
-	crdChecker, err := controller.NewCRDChecker(ctrl.GetConfigOrDie())
-	if err != nil {
-		setupLog.Error(err, "unable to create CRD checker")
-		os.Exit(1)
-	}
-
-	gatewayAPIStatus := crdChecker.GetGatewayAPIStatus()
 	if gatewayAPIStatus.CoreAvailable() {
 		setupLog.Info("Gateway API CRDs detected, enabling Gateway API controllers",
 			"gatewayClass", gatewayAPIStatus.GatewayClassAvailable,

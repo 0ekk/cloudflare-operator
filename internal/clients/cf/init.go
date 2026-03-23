@@ -15,8 +15,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/credentials"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/credentials"
 )
 
 // CloudflareAPIBaseURLEnv is the environment variable name for custom Cloudflare API base URL.
@@ -51,10 +51,15 @@ func NewAPIClientFromDetails(ctx context.Context, k8sClient client.Client, names
 	if err != nil {
 		return nil, err
 	}
+	cfClientV6, err := createCloudflareV6ClientFromConfig(creds.APIToken, creds.APIKey, creds.Email)
+	if err != nil {
+		return nil, err
+	}
 
 	api := &API{
 		Log:              logger,
 		CloudflareClient: cfClient,
+		CloudflareV6:     cfClientV6,
 		AccountId:        creds.AccountID,
 		Domain:           creds.Domain,
 		APIToken:         creds.APIToken,
@@ -88,10 +93,15 @@ func NewAPIClientFromCredentialsRef(ctx context.Context, k8sClient client.Client
 	if err != nil {
 		return nil, err
 	}
+	cfClientV6, err := createCloudflareV6ClientFromConfig(creds.APIToken, creds.APIKey, creds.Email)
+	if err != nil {
+		return nil, err
+	}
 
 	return &API{
 		Log:              logger,
 		CloudflareClient: cfClient,
+		CloudflareV6:     cfClientV6,
 		AccountId:        creds.AccountID,
 		Domain:           creds.Domain,
 		APIToken:         creds.APIToken,
@@ -118,10 +128,15 @@ func NewAPIClientFromDefaultCredentials(ctx context.Context, k8sClient client.Cl
 	if err != nil {
 		return nil, err
 	}
+	cfClientV6, err := createCloudflareV6ClientFromConfig(creds.APIToken, creds.APIKey, creds.Email)
+	if err != nil {
+		return nil, err
+	}
 
 	return &API{
 		Log:              logger,
 		CloudflareClient: cfClient,
+		CloudflareV6:     cfClientV6,
 		AccountId:        creds.AccountID,
 		Domain:           creds.Domain,
 		APIToken:         creds.APIToken,
@@ -154,6 +169,7 @@ func NewAPIClientFromSecret(ctx context.Context, k8sClient client.Client, secret
 	if baseURL := GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(NewAPIHTTPClient()))
 
 	if apiToken != "" {
 		cfClient, err = cloudflare.NewWithAPIToken(apiToken, opts...)
@@ -167,9 +183,15 @@ func NewAPIClientFromSecret(ctx context.Context, k8sClient client.Client, secret
 		return nil, fmt.Errorf("failed to create Cloudflare client: %w", err)
 	}
 
+	cfClientV6, err := createCloudflareV6ClientFromConfig(apiToken, apiKey, apiEmail)
+	if err != nil {
+		return nil, err
+	}
+
 	return &API{
 		Log:              log,
 		CloudflareClient: cfClient,
+		CloudflareV6:     cfClientV6,
 		APIToken:         apiToken,
 		APIKey:           apiKey,
 		APIEmail:         apiEmail,
@@ -188,6 +210,7 @@ func createCloudflareClient(creds *credentials.Credentials) (*cloudflare.API, er
 	if baseURL := GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(NewAPIHTTPClient()))
 
 	switch creds.AuthType {
 	case networkingv1alpha2.AuthTypeAPIToken:

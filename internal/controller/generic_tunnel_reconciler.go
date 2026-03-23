@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/clients/k8s"
-	"github.com/StringKe/cloudflare-operator/internal/controller/tunnelconfig"
-	"github.com/StringKe/cloudflare-operator/internal/service"
-	tunnelsvc "github.com/StringKe/cloudflare-operator/internal/service/tunnel"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/clients/k8s"
+	controllercommon "github.com/0ekk/cloudflare-operator/internal/controller/common"
+	"github.com/0ekk/cloudflare-operator/internal/controller/tunnelconfig"
+	"github.com/0ekk/cloudflare-operator/internal/service"
+	tunnelsvc "github.com/0ekk/cloudflare-operator/internal/service/tunnel"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -95,12 +96,20 @@ func setupTunnel(r GenericTunnelReconciler) (ctrl.Result, bool, error) {
 			}
 		} else {
 			if err := setupNewTunnel(r); err != nil {
-				return ctrl.Result{}, false, err
+				res, mappedErr := mapSetupNewTunnelError(err)
+				return res, false, mappedErr
 			}
 		}
 	}
 
 	return ctrl.Result{}, true, nil
+}
+
+func mapSetupNewTunnelError(err error) (ctrl.Result, error) {
+	if IsLifecyclePendingError(err) {
+		return ctrl.Result{RequeueAfter: tunnelLifecycleCheckInterval}, nil
+	}
+	return ctrl.Result{}, err
 }
 
 func setupExistingTunnel(r GenericTunnelReconciler) error {
@@ -986,12 +995,7 @@ func writeTunnelSettingsToConfigMap(r GenericTunnelReconciler, tunnelID, tunnelK
 		configCredRef = &tunnelconfig.CredentialsRef{Name: credRef.Name}
 	}
 
-	// Get operator namespace from tunnel namespace (for namespaced Tunnel) or use default
-	operatorNamespace := tunnel.GetNamespace()
-	if operatorNamespace == "" {
-		// ClusterTunnel - get from context or use default
-		operatorNamespace = "cloudflare-operator-system"
-	}
+	operatorNamespace := getTunnelConfigNamespace(tunnel)
 
 	// Write to ConfigMap
 	writer := tunnelconfig.NewWriter(r.GetClient(), operatorNamespace)
@@ -1014,6 +1018,15 @@ func writeTunnelSettingsToConfigMap(r GenericTunnelReconciler, tunnelID, tunnelK
 		"source", fmt.Sprintf("%s/%s/%s", tunnelKind, tunnel.GetNamespace(), tunnel.GetName()))
 
 	return nil
+}
+
+func getTunnelConfigNamespace(_ Tunnel) string {
+	// Keep tunnel config aggregation in operator namespace so Tunnel/Ingress/Gateway
+	// sources reconcile through the same ConfigMap watched by TunnelConfig controller.
+	if controllercommon.OperatorNamespace != "" {
+		return controllercommon.OperatorNamespace
+	}
+	return "cloudflare-operator-system"
 }
 
 // getCredentialsReference extracts the CredentialsReference from Tunnel spec.
@@ -1263,6 +1276,26 @@ func deploymentForTunnel(r GenericTunnelReconciler) *appsv1.Deployment {
 						Name:  "cloudflared",
 						Args:  args,
 						Env:   envVars,
+						StartupProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path: "/ready",
+									Port: intstr.IntOrString{IntVal: 2000},
+								},
+							},
+							FailureThreshold: 12,
+							PeriodSeconds:    5,
+						},
+						ReadinessProbe: &corev1.Probe{
+							ProbeHandler: corev1.ProbeHandler{
+								HTTPGet: &corev1.HTTPGetAction{
+									Path: "/ready",
+									Port: intstr.IntOrString{IntVal: 2000},
+								},
+							},
+							FailureThreshold: 3,
+							PeriodSeconds:    10,
+						},
 						LivenessProbe: &corev1.Probe{
 							ProbeHandler: corev1.ProbeHandler{
 								HTTPGet: &corev1.HTTPGetAction{
@@ -1270,9 +1303,8 @@ func deploymentForTunnel(r GenericTunnelReconciler) *appsv1.Deployment {
 									Port: intstr.IntOrString{IntVal: 2000},
 								},
 							},
-							FailureThreshold:    1,
-							InitialDelaySeconds: 10,
-							PeriodSeconds:       10,
+							FailureThreshold: 3,
+							PeriodSeconds:    10,
 						},
 						Ports: []corev1.ContainerPort{
 							{

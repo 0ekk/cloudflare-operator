@@ -8,7 +8,7 @@ package tunnel
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // Interface provides a common interface for Tunnel and ClusterTunnel.

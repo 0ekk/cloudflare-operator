@@ -23,17 +23,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	networkingv1alpha1 "github.com/StringKe/cloudflare-operator/api/v1alpha1"
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
-	"github.com/StringKe/cloudflare-operator/internal/controller/tunnelconfig"
-	"github.com/StringKe/cloudflare-operator/internal/resolver"
+	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
+	"github.com/0ekk/cloudflare-operator/internal/controller/tunnelconfig"
+	"github.com/0ekk/cloudflare-operator/internal/resolver"
 )
 
 const (
 	// ControllerName is the name registered with IngressClass
 	ControllerName = "cloudflare-operator.io/ingress-controller"
+	// LegacyControllerName is the historic controller value found in older migration docs.
+	LegacyControllerName = "cloudflare-operator.io/tunnel-ingress-controller"
 
 	// FinalizerName is the finalizer added to managed Ingresses
 	FinalizerName = "ingress.cloudflare-operator.io/finalizer"
@@ -47,6 +49,10 @@ const (
 	// IngressClassAnnotation is the legacy annotation for ingress class
 	IngressClassAnnotation = "kubernetes.io/ingress.class"
 )
+
+func isManagedIngressClassController(controller string) bool {
+	return controller == ControllerName || controller == LegacyControllerName
+}
 
 // Reconciler reconciles standard Kubernetes Ingress resources
 type Reconciler struct {
@@ -179,7 +185,7 @@ func (r *Reconciler) isOurIngressClass(ctx context.Context, className string) bo
 	if err := r.Get(ctx, apitypes.NamespacedName{Name: className}, ingressClass); err != nil {
 		return false
 	}
-	return ingressClass.Spec.Controller == ControllerName
+	return isManagedIngressClassController(ingressClass.Spec.Controller)
 }
 
 // isDefaultIngressClass checks if we have a default IngressClass
@@ -191,7 +197,7 @@ func (r *Reconciler) isDefaultIngressClass(ctx context.Context) bool {
 	}
 
 	for _, ic := range ingressClasses.Items {
-		if ic.Spec.Controller == ControllerName {
+		if isManagedIngressClassController(ic.Spec.Controller) {
 			if ic.Annotations != nil {
 				if ic.Annotations["ingressclass.kubernetes.io/is-default-class"] == "true" {
 					return true
@@ -227,8 +233,8 @@ func (r *Reconciler) getIngressClassConfig(ctx context.Context, ingress *network
 	}
 
 	// Validate controller
-	if ingressClass.Spec.Controller != ControllerName {
-		return nil, fmt.Errorf("IngressClass %q is not managed by %s", className, ControllerName)
+	if !isManagedIngressClassController(ingressClass.Spec.Controller) {
+		return nil, fmt.Errorf("IngressClass %q is not managed by %s or %s", className, ControllerName, LegacyControllerName)
 	}
 
 	// Get parameters
@@ -277,7 +283,7 @@ func (r *Reconciler) getDefaultIngressClassName(ctx context.Context) (string, er
 	}
 
 	for _, ic := range ingressClasses.Items {
-		if ic.Spec.Controller == ControllerName {
+		if isManagedIngressClassController(ic.Spec.Controller) {
 			if ic.Annotations != nil {
 				if ic.Annotations["ingressclass.kubernetes.io/is-default-class"] == "true" {
 					return ic.Name, nil
@@ -379,10 +385,37 @@ func (r *Reconciler) handleDeletion(
 	return ctrl.Result{}, nil
 }
 
-// handleIngressDeletion handles the case where an Ingress was deleted before we could process it
-func (*Reconciler) handleIngressDeletion(_ context.Context, _ ctrl.Request) (ctrl.Result, error) {
-	// We can't determine which config this Ingress belonged to, so we need to rebuild all configs
-	// In practice, this is rare and the next reconcile will fix any inconsistencies
+// handleIngressDeletion handles the case where an Ingress was deleted before we could process it.
+// Since we no longer have the Ingress object, rebuild all TunnelIngressClassConfig resources to
+// ensure removed routes are published to Cloudflare tunnel config.
+func (r *Reconciler) handleIngressDeletion(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx)
+
+	configList := &networkingv1alpha2.TunnelIngressClassConfigList{}
+	if err := r.List(ctx, configList); err != nil {
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, fmt.Errorf("failed to list TunnelIngressClassConfigs: %w", err)
+	}
+
+	var firstErr error
+	for i := range configList.Items {
+		config := &configList.Items[i]
+		if err := r.rebuildTunnelConfig(ctx, config, nil); err != nil {
+			logger.Error(err, "Failed to rebuild tunnel config for deleted Ingress",
+				"ingress", req.NamespacedName.String(),
+				"config", apitypes.NamespacedName{Name: config.Name, Namespace: config.Namespace}.String(),
+			)
+			if firstErr == nil {
+				firstErr = err
+			}
+		}
+	}
+
+	if firstErr != nil {
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, firstErr
+	}
+
+	logger.Info("Processed deleted Ingress by rebuilding all tunnel configs",
+		"ingress", req.NamespacedName.String(), "configCount", len(configList.Items))
 	return ctrl.Result{}, nil
 }
 
@@ -472,7 +505,7 @@ func (r *Reconciler) getIngressesForConfig(
 
 	var matchingClassNames []string
 	for _, ic := range ingressClasses.Items {
-		if ic.Spec.Controller != ControllerName {
+		if !isManagedIngressClassController(ic.Spec.Controller) {
 			continue
 		}
 		if ic.Spec.Parameters == nil {
@@ -760,7 +793,7 @@ func (r *Reconciler) findIngressesForIngressClass(ctx context.Context, obj clien
 	}
 
 	// Only process our IngressClasses
-	if ingressClass.Spec.Controller != ControllerName {
+	if !isManagedIngressClassController(ingressClass.Spec.Controller) {
 		return nil
 	}
 

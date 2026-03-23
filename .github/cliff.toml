@@ -25,7 +25,7 @@ body = """
     {% for commit in commits %}
         - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}\
             {{ commit.message | upper_first }}\
-            {% if commit.github.pr_number %} ([#{{ commit.github.pr_number }}](https://github.com/StringKe/cloudflare-operator/pull/{{ commit.github.pr_number }})){% endif %}\
+            {% if commit.github.pr_number %} ([#{{ commit.github.pr_number }}](https://github.com/0ekk/cloudflare-operator/pull/{{ commit.github.pr_number }})){% endif %}\
     {% endfor %}
 {% endfor %}\n
 """
@@ -37,10 +37,10 @@ footer = """
 {% for release in releases -%}
     {% if release.version -%}
         {% if release.previous.version -%}
-            [{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/StringKe/cloudflare-operator/compare/{{ release.previous.version }}...{{ release.version }}
+            [{{ release.version | trim_start_matches(pat="v") }}]: https://github.com/0ekk/cloudflare-operator/compare/{{ release.previous.version }}...{{ release.version }}
         {% endif -%}
     {% else -%}
-        [Unreleased]: https://github.com/StringKe/cloudflare-operator/compare/{{ release.previous.version }}...HEAD
+        [Unreleased]: https://github.com/0ekk/cloudflare-operator/compare/{{ release.previous.version }}...HEAD
     {% endif -%}
 {% endfor %}
 """
@@ -93,11 +93,11 @@ protect_breaking_commits = true
 
 # Link parsers for GitHub references
 link_parsers = [
-    { pattern = "#(\\d+)", href = "https://github.com/StringKe/cloudflare-operator/issues/$1" },
+    { pattern = "#(\\d+)", href = "https://github.com/0ekk/cloudflare-operator/issues/$1" },
     { pattern = "RFC(\\d+)", text = "RFC$1", href = "https://tools.ietf.org/html/rfc$1" },
 ]
 
 # GitHub integration
 [remote.github]
-owner = "StringKe"
+owner = "0ekk"
 repo = "cloudflare-operator"

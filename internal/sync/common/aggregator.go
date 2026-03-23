@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // Aggregator provides common aggregation logic for Sync Controllers.

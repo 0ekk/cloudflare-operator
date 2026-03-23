@@ -227,7 +227,7 @@ spec:
                 - --health-probe-bind-address=:8081
                 command:
                 - /manager
-                image: ghcr.io/stringke/cloudflare-operator:0.14.0
+                image: ghcr.io/0ekk/cloudflare-operator:0.14.0
                 livenessProbe:
                   httpGet:
                     path: /healthz
@@ -337,10 +337,10 @@ spec:
   maintainers:
   - email: me@adyanth.dev
     name: adyanth
-  - email: stringke.me@gmail.com
-    name: StringKe
+  - email: ekkotuz@gmail.com
+    name: 0ekk
   maturity: alpha
   provider:
-    name: StringKe
-    url: https://github.com/StringKe/cloudflare-operator
+    name: 0ekk
+    url: https://github.com/0ekk/cloudflare-operator
   version: 0.14.0

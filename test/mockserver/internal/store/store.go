@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/models"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/models"
 )
 
 // Store provides thread-safe in-memory storage for mock data.

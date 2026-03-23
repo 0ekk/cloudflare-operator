@@ -5,9 +5,13 @@ package cf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/cloudflare/cloudflare-go"
+	cloudflarev6 "github.com/cloudflare/cloudflare-go/v6"
+	"github.com/cloudflare/cloudflare-go/v6/zero_trust"
 )
 
 // GetTunnelConfiguration retrieves the Tunnel configuration from Cloudflare API.
@@ -16,6 +20,47 @@ func (c *API) GetTunnelConfiguration(ctx context.Context, tunnelID string) (*clo
 	if _, err := c.GetAccountId(ctx); err != nil {
 		c.Log.Error(err, "error in getting account ID")
 		return nil, err
+	}
+
+	if c.CloudflareV6 != nil {
+		result, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Configurations.Get(
+			ctx,
+			tunnelID,
+			zero_trust.TunnelCloudflaredConfigurationGetParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error getting tunnel configuration", "tunnelId", tunnelID)
+			return nil, err
+		}
+
+		if raw := result.JSON.RawJSON(); raw != "" {
+			var parsed cloudflare.TunnelConfigurationResult
+			if err := json.Unmarshal([]byte(raw), &parsed); err == nil {
+				c.Log.V(1).Info("Got tunnel configuration", "tunnelId", tunnelID, "version", parsed.Version)
+				return &parsed, nil
+			}
+		}
+
+		// Fallback conversion if raw payload is unavailable
+		converted := cloudflare.TunnelConfigurationResult{
+			TunnelID: result.TunnelID,
+			Version:  int(result.Version),
+			Config:   cloudflare.TunnelConfiguration{},
+		}
+		if len(result.Config.Ingress) > 0 {
+			converted.Config.Ingress = make([]cloudflare.UnvalidatedIngressRule, 0, len(result.Config.Ingress))
+			for _, rule := range result.Config.Ingress {
+				converted.Config.Ingress = append(converted.Config.Ingress, cloudflare.UnvalidatedIngressRule{
+					Hostname: rule.Hostname,
+					Path:     rule.Path,
+					Service:  rule.Service,
+				})
+			}
+		}
+		c.Log.V(1).Info("Got tunnel configuration", "tunnelId", tunnelID, "version", converted.Version)
+		return &converted, nil
 	}
 
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
@@ -43,6 +88,38 @@ func (c *API) UpdateTunnelConfiguration(
 		return nil, err
 	}
 
+	if c.CloudflareV6 != nil && supportsV6TunnelConfiguration(config) {
+		v6Config := convertTunnelConfigurationToV6(config)
+		result, err := c.CloudflareV6.ZeroTrust.Tunnels.Cloudflared.Configurations.Update(
+			ctx,
+			tunnelID,
+			zero_trust.TunnelCloudflaredConfigurationUpdateParams{
+				AccountID: cloudflarev6.F(c.ValidAccountId),
+				Config:    cloudflarev6.F(v6Config),
+			},
+		)
+		if err != nil {
+			c.Log.Error(err, "error updating tunnel configuration", "tunnelId", tunnelID)
+			return nil, err
+		}
+
+		if raw := result.JSON.RawJSON(); raw != "" {
+			var parsed cloudflare.TunnelConfigurationResult
+			if err := json.Unmarshal([]byte(raw), &parsed); err == nil {
+				c.Log.Info("Tunnel configuration updated", "tunnelId", tunnelID, "version", parsed.Version, "ingressCount", len(config.Ingress))
+				return &parsed, nil
+			}
+		}
+
+		converted := cloudflare.TunnelConfigurationResult{
+			TunnelID: result.TunnelID,
+			Version:  int(result.Version),
+			Config:   config,
+		}
+		c.Log.Info("Tunnel configuration updated", "tunnelId", tunnelID, "version", converted.Version, "ingressCount", len(config.Ingress))
+		return &converted, nil
+	}
+
 	rc := cloudflare.AccountIdentifier(c.ValidAccountId)
 
 	params := cloudflare.TunnelConfigurationParams{
@@ -58,6 +135,185 @@ func (c *API) UpdateTunnelConfiguration(
 
 	c.Log.Info("Tunnel configuration updated", "tunnelId", tunnelID, "version", result.Version, "ingressCount", len(config.Ingress))
 	return &result, nil
+}
+
+func supportsV6TunnelConfiguration(config cloudflare.TunnelConfiguration) bool {
+	if config.WarpRouting != nil {
+		return false
+	}
+	if !supportsV6OriginRequest(config.OriginRequest) {
+		return false
+	}
+	for _, rule := range config.Ingress {
+		if rule.OriginRequest != nil && !supportsV6OriginRequest(*rule.OriginRequest) {
+			return false
+		}
+	}
+	return true
+}
+
+func supportsV6OriginRequest(origin cloudflare.OriginRequestConfig) bool {
+	return origin.BastionMode == nil &&
+		origin.ProxyAddress == nil &&
+		origin.ProxyPort == nil &&
+		len(origin.IPRules) == 0
+}
+
+func convertTunnelConfigurationToV6(config cloudflare.TunnelConfiguration) zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfig {
+	v6Config := zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfig{}
+	if len(config.Ingress) > 0 {
+		ingress := make([]zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigIngress, 0, len(config.Ingress))
+		for _, rule := range config.Ingress {
+			v6Rule := zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigIngress{
+				Service: cloudflarev6.F(rule.Service),
+			}
+			if rule.Hostname != "" {
+				v6Rule.Hostname = cloudflarev6.F(rule.Hostname)
+			}
+			if rule.Path != "" {
+				v6Rule.Path = cloudflarev6.F(rule.Path)
+			}
+			if rule.OriginRequest != nil && hasSDKOriginRequest(*rule.OriginRequest) {
+				v6Rule.OriginRequest = cloudflarev6.F(convertIngressOriginRequestToV6(*rule.OriginRequest))
+			}
+			ingress = append(ingress, v6Rule)
+		}
+		v6Config.Ingress = cloudflarev6.F(ingress)
+	}
+
+	if hasSDKOriginRequest(config.OriginRequest) {
+		v6Config.OriginRequest = cloudflarev6.F(convertOriginRequestToV6(config.OriginRequest))
+	}
+	return v6Config
+}
+
+//nolint:dupl // ingress/global origin request structs are different types with same field semantics
+func convertOriginRequestToV6(origin cloudflare.OriginRequestConfig) zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigOriginRequest {
+	v6Origin := zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigOriginRequest{}
+
+	if origin.Access != nil {
+		v6Origin.Access = cloudflarev6.F(zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigOriginRequestAccess{
+			AUDTag:   cloudflarev6.F(origin.Access.AudTag),
+			TeamName: cloudflarev6.F(origin.Access.TeamName),
+			Required: cloudflarev6.F(origin.Access.Required),
+		})
+	}
+	if origin.CAPool != nil {
+		v6Origin.CAPool = cloudflarev6.F(*origin.CAPool)
+	}
+	if origin.ConnectTimeout != nil {
+		v6Origin.ConnectTimeout = cloudflarev6.F(durationToSeconds(origin.ConnectTimeout.Duration))
+	}
+	if origin.DisableChunkedEncoding != nil {
+		v6Origin.DisableChunkedEncoding = cloudflarev6.F(*origin.DisableChunkedEncoding)
+	}
+	if origin.Http2Origin != nil {
+		v6Origin.HTTP2Origin = cloudflarev6.F(*origin.Http2Origin)
+	}
+	if origin.HTTPHostHeader != nil {
+		v6Origin.HTTPHostHeader = cloudflarev6.F(*origin.HTTPHostHeader)
+	}
+	if origin.KeepAliveConnections != nil {
+		v6Origin.KeepAliveConnections = cloudflarev6.F(int64(*origin.KeepAliveConnections))
+	}
+	if origin.KeepAliveTimeout != nil {
+		v6Origin.KeepAliveTimeout = cloudflarev6.F(durationToSeconds(origin.KeepAliveTimeout.Duration))
+	}
+	if origin.NoHappyEyeballs != nil {
+		v6Origin.NoHappyEyeballs = cloudflarev6.F(*origin.NoHappyEyeballs)
+	}
+	if origin.NoTLSVerify != nil {
+		v6Origin.NoTLSVerify = cloudflarev6.F(*origin.NoTLSVerify)
+	}
+	if origin.OriginServerName != nil {
+		v6Origin.OriginServerName = cloudflarev6.F(*origin.OriginServerName)
+	}
+	if origin.ProxyType != nil {
+		v6Origin.ProxyType = cloudflarev6.F(*origin.ProxyType)
+	}
+	if origin.TCPKeepAlive != nil {
+		v6Origin.TCPKeepAlive = cloudflarev6.F(durationToSeconds(origin.TCPKeepAlive.Duration))
+	}
+	if origin.TLSTimeout != nil {
+		v6Origin.TLSTimeout = cloudflarev6.F(durationToSeconds(origin.TLSTimeout.Duration))
+	}
+
+	return v6Origin
+}
+
+//nolint:dupl // ingress/global origin request structs are different types with same field semantics
+func convertIngressOriginRequestToV6(origin cloudflare.OriginRequestConfig) zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigIngressOriginRequest {
+	v6Origin := zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigIngressOriginRequest{}
+
+	if origin.Access != nil {
+		v6Origin.Access = cloudflarev6.F(zero_trust.TunnelCloudflaredConfigurationUpdateParamsConfigIngressOriginRequestAccess{
+			AUDTag:   cloudflarev6.F(origin.Access.AudTag),
+			TeamName: cloudflarev6.F(origin.Access.TeamName),
+			Required: cloudflarev6.F(origin.Access.Required),
+		})
+	}
+	if origin.CAPool != nil {
+		v6Origin.CAPool = cloudflarev6.F(*origin.CAPool)
+	}
+	if origin.ConnectTimeout != nil {
+		v6Origin.ConnectTimeout = cloudflarev6.F(durationToSeconds(origin.ConnectTimeout.Duration))
+	}
+	if origin.DisableChunkedEncoding != nil {
+		v6Origin.DisableChunkedEncoding = cloudflarev6.F(*origin.DisableChunkedEncoding)
+	}
+	if origin.Http2Origin != nil {
+		v6Origin.HTTP2Origin = cloudflarev6.F(*origin.Http2Origin)
+	}
+	if origin.HTTPHostHeader != nil {
+		v6Origin.HTTPHostHeader = cloudflarev6.F(*origin.HTTPHostHeader)
+	}
+	if origin.KeepAliveConnections != nil {
+		v6Origin.KeepAliveConnections = cloudflarev6.F(int64(*origin.KeepAliveConnections))
+	}
+	if origin.KeepAliveTimeout != nil {
+		v6Origin.KeepAliveTimeout = cloudflarev6.F(durationToSeconds(origin.KeepAliveTimeout.Duration))
+	}
+	if origin.NoHappyEyeballs != nil {
+		v6Origin.NoHappyEyeballs = cloudflarev6.F(*origin.NoHappyEyeballs)
+	}
+	if origin.NoTLSVerify != nil {
+		v6Origin.NoTLSVerify = cloudflarev6.F(*origin.NoTLSVerify)
+	}
+	if origin.OriginServerName != nil {
+		v6Origin.OriginServerName = cloudflarev6.F(*origin.OriginServerName)
+	}
+	if origin.ProxyType != nil {
+		v6Origin.ProxyType = cloudflarev6.F(*origin.ProxyType)
+	}
+	if origin.TCPKeepAlive != nil {
+		v6Origin.TCPKeepAlive = cloudflarev6.F(durationToSeconds(origin.TCPKeepAlive.Duration))
+	}
+	if origin.TLSTimeout != nil {
+		v6Origin.TLSTimeout = cloudflarev6.F(durationToSeconds(origin.TLSTimeout.Duration))
+	}
+
+	return v6Origin
+}
+
+func hasSDKOriginRequest(origin cloudflare.OriginRequestConfig) bool {
+	return origin.ConnectTimeout != nil ||
+		origin.TLSTimeout != nil ||
+		origin.TCPKeepAlive != nil ||
+		origin.NoHappyEyeballs != nil ||
+		origin.KeepAliveConnections != nil ||
+		origin.KeepAliveTimeout != nil ||
+		origin.HTTPHostHeader != nil ||
+		origin.OriginServerName != nil ||
+		origin.CAPool != nil ||
+		origin.NoTLSVerify != nil ||
+		origin.Http2Origin != nil ||
+		origin.DisableChunkedEncoding != nil ||
+		origin.ProxyType != nil ||
+		origin.Access != nil
+}
+
+func durationToSeconds(d time.Duration) int64 {
+	return int64(d / time.Second)
 }
 
 // ConvertLocalRulesToSDK converts local UnvalidatedIngressRule to cloudflare-go SDK types.

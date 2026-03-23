@@ -8,7 +8,7 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // ConvertTo converts this ClusterTunnel (v1alpha1) to the Hub version (v1alpha2).

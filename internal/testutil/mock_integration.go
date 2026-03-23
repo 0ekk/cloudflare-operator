@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver"
+	"github.com/0ekk/cloudflare-operator/test/mockserver"
 )
 
 // MockServerTestEnv combines a mock Cloudflare server with a test environment.

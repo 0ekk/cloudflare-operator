@@ -29,12 +29,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	gatewayv1 "sigs.k8s.io/gateway-api/apis/v1"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/controller"
-	"github.com/StringKe/cloudflare-operator/internal/controller/common"
-	"github.com/StringKe/cloudflare-operator/internal/resolver"
-	"github.com/StringKe/cloudflare-operator/internal/resolver/address"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/controller"
+	"github.com/0ekk/cloudflare-operator/internal/controller/common"
+	"github.com/0ekk/cloudflare-operator/internal/resolver"
+	"github.com/0ekk/cloudflare-operator/internal/resolver/address"
 )
 
 const (
@@ -46,11 +46,12 @@ const (
 // following the simplified 3-layer architecture.
 type DNSRecordReconciler struct {
 	client.Client
-	Scheme          *runtime.Scheme
-	Recorder        record.EventRecorder
-	APIFactory      *common.APIClientFactory
-	domainResolver  *resolver.DomainResolver
-	addressResolver *address.Resolver
+	Scheme              *runtime.Scheme
+	Recorder            record.EventRecorder
+	APIFactory          *common.APIClientFactory
+	domainResolver      *resolver.DomainResolver
+	addressResolver     *address.Resolver
+	GatewayAPIAvailable bool
 }
 
 // +kubebuilder:rbac:groups=networking.cloudflare-operator.io,resources=dnsrecords,verbs=get;list;watch;create;update;patch;delete
@@ -714,22 +715,43 @@ func (r *DNSRecordReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	r.domainResolver = resolver.NewDomainResolver(mgr.GetClient(), logr.Discard())
 	r.addressResolver = address.NewResolver(mgr.GetClient())
 
-	return ctrl.NewControllerManagedBy(mgr).
+	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&networkingv1alpha2.DNSRecord{}).
 		Watches(&networkingv1alpha2.CloudflareDomain{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForDomain)).
-		// Watch source resources for dynamic mode
-		Watches(&corev1.Service{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForService)).
-		Watches(&networkingv1.Ingress{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForIngress)).
-		Watches(&gatewayv1.Gateway{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForGateway)).
-		Watches(&gatewayv1.HTTPRoute{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForHTTPRoute)).
-		Watches(&corev1.Node{},
-			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForNode)).
-		Complete(r)
+			handler.EnqueueRequestsFromMapFunc(r.findDNSRecordsForDomain))
+
+	for _, watch := range r.sourceWatchRegistrations() {
+		builder = builder.Watches(
+			watch.object,
+			handler.EnqueueRequestsFromMapFunc(watch.mapFunc),
+		)
+	}
+
+	return builder.Complete(r)
+}
+
+type sourceWatchRegistration struct {
+	object  client.Object
+	mapFunc handler.MapFunc
+}
+
+// sourceWatchRegistrations returns dynamic source watches based on optional CRD availability.
+func (r *DNSRecordReconciler) sourceWatchRegistrations() []sourceWatchRegistration {
+	watches := []sourceWatchRegistration{
+		{object: &corev1.Service{}, mapFunc: r.findDNSRecordsForService},
+		{object: &networkingv1.Ingress{}, mapFunc: r.findDNSRecordsForIngress},
+	}
+
+	if r.GatewayAPIAvailable {
+		watches = append(watches,
+			sourceWatchRegistration{object: &gatewayv1.Gateway{}, mapFunc: r.findDNSRecordsForGateway},
+			sourceWatchRegistration{object: &gatewayv1.HTTPRoute{}, mapFunc: r.findDNSRecordsForHTTPRoute},
+		)
+	}
+
+	watches = append(watches, sourceWatchRegistration{object: &corev1.Node{}, mapFunc: r.findDNSRecordsForNode})
+
+	return watches
 }
 
 // sourceRefMatcher is a function that checks if a DNSRecord's sourceRef matches a given resource.

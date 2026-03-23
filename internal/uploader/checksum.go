@@ -12,7 +12,7 @@ import (
 	"hash"
 	"strings"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 // Checksum algorithm constants

@@ -6,7 +6,7 @@ package address
 import (
 	"testing"
 
-	"github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	"github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 //nolint:revive // cognitive complexity acceptable for table-driven test

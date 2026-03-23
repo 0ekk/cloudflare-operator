@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/internal/clients/cf"
-	"github.com/StringKe/cloudflare-operator/internal/credentials"
+	"github.com/0ekk/cloudflare-operator/internal/clients/cf"
+	"github.com/0ekk/cloudflare-operator/internal/credentials"
 
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/go-logr/logr"
@@ -14,7 +14,7 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 const (
@@ -156,6 +156,7 @@ func CreateCloudflareClientFromCreds(creds *credentials.Credentials) (*cloudflar
 	if baseURL := cf.GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(cf.NewAPIHTTPClient()))
 
 	switch creds.AuthType {
 	case networkingv1alpha2.AuthTypeAPIToken:
@@ -185,6 +186,7 @@ func getCloudflareClient(apiKey, apiEmail, apiToken string) (*cloudflare.API, er
 	if baseURL := cf.GetAPIBaseURL(); baseURL != "" {
 		opts = append(opts, cloudflare.BaseURL(baseURL))
 	}
+	opts = append(opts, cloudflare.HTTPClient(cf.NewAPIHTTPClient()))
 
 	if apiToken != "" {
 		return cloudflare.NewWithAPIToken(apiToken, opts...)

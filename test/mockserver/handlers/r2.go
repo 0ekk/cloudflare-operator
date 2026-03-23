@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/StringKe/cloudflare-operator/test/mockserver/models"
+	"github.com/0ekk/cloudflare-operator/test/mockserver/models"
 )
 
 // R2BucketCreateRequest represents an R2 bucket creation request.

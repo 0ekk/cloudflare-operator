@@ -6,6 +6,7 @@ package ingress
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	networkingv1alpha2 "github.com/StringKe/cloudflare-operator/api/v1alpha2"
+	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
 )
 
 const testIngressClassName = "cloudflare-tunnel"
@@ -845,4 +846,42 @@ func TestHandleIngressDeletion(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Zero(t, result.RequeueAfter)
+}
+
+func TestHandleIngressDeletion_RequeueOnRebuildError(t *testing.T) {
+	scheme := setupTestScheme(t)
+	ctx := context.Background()
+
+	config := &networkingv1alpha2.TunnelIngressClassConfig{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "cf-tunnel",
+			Namespace: "default",
+		},
+		Spec: networkingv1alpha2.TunnelIngressClassConfigSpec{
+			TunnelRef: networkingv1alpha2.TunnelReference{
+				Kind: "Tunnel",
+				Name: "missing-tunnel",
+			},
+		},
+	}
+
+	fakeClient := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(config).
+		Build()
+
+	r := &Reconciler{
+		Client: fakeClient,
+		Scheme: scheme,
+	}
+
+	result, err := r.handleIngressDeletion(ctx, ctrl.Request{
+		NamespacedName: client.ObjectKey{
+			Name:      "deleted-ingress",
+			Namespace: "default",
+		},
+	})
+
+	require.Error(t, err)
+	assert.Equal(t, 30*time.Second, result.RequeueAfter)
 }

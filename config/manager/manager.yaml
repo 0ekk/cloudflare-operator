@@ -50,6 +50,9 @@ spec:
             - /manager
           args:
             - --leader-elect
+            - --leader-election-lease-duration=60s
+            - --leader-election-renew-deadline=40s
+            - --leader-election-retry-period=15s
             - --health-probe-bind-address=:8081
             - --zap-encoder=json
             - --zap-devel=false
