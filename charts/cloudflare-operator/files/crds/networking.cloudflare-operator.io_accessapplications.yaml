@@ -1,0 +1,2390 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: accessapplications.networking.cloudflare-operator.io
+spec:
+  group: networking.cloudflare-operator.io
+  names:
+    kind: AccessApplication
+    listKind: AccessApplicationList
+    plural: accessapplications
+    shortNames:
+    - accessapp
+    singular: accessapplication
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.domain
+      name: Domain
+      type: string
+    - jsonPath: .spec.type
+      name: Type
+      type: string
+    - jsonPath: .status.applicationId
+      name: AppID
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          AccessApplication is the Schema for the accessapplications API.
+          An AccessApplication represents a Cloudflare Access Application,
+          which protects internal resources with Zero Trust policies.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: AccessApplicationSpec defines the desired state of AccessApplication
+            properties:
+              allowAuthenticateViaWarp:
+                description: AllowAuthenticateViaWarp allows authentication via WARP.
+                type: boolean
+              allowedIdps:
+                description: AllowedIdps is the list of identity provider IDs allowed
+                  for this application.
+                items:
+                  type: string
+                type: array
+              appLauncherCustomization:
+                description: AppLauncherCustomization configures the appearance of
+                  the app launcher.
+                properties:
+                  appLauncherLogoUrl:
+                    description: AppLauncherLogoURL is the URL of the app launcher
+                      logo.
+                    type: string
+                  backgroundColor:
+                    description: BackgroundColor is the background color (hex format).
+                    pattern: ^#[0-9a-fA-F]{6}$
+                    type: string
+                  footerLinks:
+                    description: FooterLinks is a list of footer links.
+                    items:
+                      description: AccessFooterLink represents a footer link in the
+                        App Launcher.
+                      properties:
+                        name:
+                          description: Name is the display name of the link.
+                          maxLength: 255
+                          type: string
+                        url:
+                          description: URL is the link URL.
+                          type: string
+                      required:
+                      - name
+                      - url
+                      type: object
+                    type: array
+                  headerBackgroundColor:
+                    description: HeaderBackgroundColor is the header background color
+                      (hex format).
+                    pattern: ^#[0-9a-fA-F]{6}$
+                    type: string
+                  landingPageDesign:
+                    description: LandingPageDesign configures the landing page appearance.
+                    properties:
+                      buttonColor:
+                        description: ButtonColor is the button color (hex format).
+                        pattern: ^#[0-9a-fA-F]{6}$
+                        type: string
+                      buttonTextColor:
+                        description: ButtonTextColor is the button text color (hex
+                          format).
+                        pattern: ^#[0-9a-fA-F]{6}$
+                        type: string
+                      imageUrl:
+                        description: ImageURL is the URL of the landing page image.
+                        type: string
+                      message:
+                        description: Message is the landing page message.
+                        maxLength: 1024
+                        type: string
+                      title:
+                        description: Title is the landing page title.
+                        maxLength: 255
+                        type: string
+                    type: object
+                  skipAppLauncherLoginPage:
+                    description: SkipAppLauncherLoginPage skips the app launcher login
+                      page.
+                    type: boolean
+                type: object
+              appLauncherVisible:
+                default: true
+                description: AppLauncherVisible shows the application in the App Launcher.
+                type: boolean
+              autoRedirectToIdentity:
+                default: false
+                description: AutoRedirectToIdentity enables automatic redirect to
+                  the identity provider.
+                type: boolean
+              cloudflare:
+                description: Cloudflare contains the Cloudflare API credentials and
+                  account information.
+                properties:
+                  CLOUDFLARE_API_KEY:
+                    description: |-
+                      Key in the secret to use for Cloudflare API Key.
+                      If not specified, defaults to "CLOUDFLARE_API_KEY" at runtime.
+                      Needs Email also to be provided.
+                      For Delete operations for new tunnels only, or as an alternate to API Token.
+                    type: string
+                  CLOUDFLARE_API_TOKEN:
+                    description: |-
+                      Key in the secret to use for Cloudflare API token.
+                      If not specified, defaults to "CLOUDFLARE_API_TOKEN" at runtime.
+                    type: string
+                  CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:
+                    description: |-
+                      Key in the secret to use as credentials.json for an existing tunnel.
+                      If not specified, defaults to "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE" at runtime.
+                    type: string
+                  CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET:
+                    description: |-
+                      Key in the secret to use as tunnel secret for an existing tunnel.
+                      If not specified, defaults to "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET" at runtime.
+                    type: string
+                  accountId:
+                    description: Account ID in Cloudflare. AccountId and AccountName
+                      cannot be both empty. If both are provided, Account ID is used
+                      if valid, else falls back to Account Name.
+                    type: string
+                  accountName:
+                    description: Account Name in Cloudflare. AccountName and AccountId
+                      cannot be both empty. If both are provided, Account ID is used
+                      if valid, else falls back to Account Name.
+                    type: string
+                  credentialsRef:
+                    description: |-
+                      CredentialsRef references a CloudflareCredentials resource for API authentication.
+                      When specified, this takes precedence over inline credential fields.
+                      This is the recommended way to configure credentials.
+                    properties:
+                      name:
+                        description: Name of the CloudflareCredentials resource to
+                          use
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  domain:
+                    description: |-
+                      Cloudflare Domain to which this tunnel belongs to.
+                      Required if not using credentialsRef with a defaultDomain.
+                    type: string
+                  email:
+                    description: Email to use along with API Key for Delete operations
+                      for new tunnels only, or as an alternate to API Token
+                    type: string
+                  secret:
+                    description: Secret containing Cloudflare API key/token (legacy,
+                      use credentialsRef instead)
+                    type: string
+                  zoneId:
+                    description: |-
+                      ZoneId is the Cloudflare Zone ID for DNS operations.
+                      If not specified, it will be looked up via CloudflareDomain or the domain field.
+                      Specifying this directly is useful for multi-zone scenarios.
+                    type: string
+                type: object
+              corsHeaders:
+                description: CorsHeaders configures Cross-Origin Resource Sharing
+                  (CORS) for the application.
+                properties:
+                  allowAllHeaders:
+                    description: AllowAllHeaders allows all headers.
+                    type: boolean
+                  allowAllMethods:
+                    description: AllowAllMethods allows all HTTP methods.
+                    type: boolean
+                  allowAllOrigins:
+                    description: AllowAllOrigins allows all origins.
+                    type: boolean
+                  allowCredentials:
+                    description: AllowCredentials allows credentials.
+                    type: boolean
+                  allowedHeaders:
+                    description: AllowedHeaders is a list of allowed headers.
+                    items:
+                      type: string
+                    type: array
+                  allowedMethods:
+                    description: AllowedMethods is a list of allowed HTTP methods.
+                    items:
+                      type: string
+                    type: array
+                  allowedOrigins:
+                    description: AllowedOrigins is a list of allowed origins.
+                    items:
+                      type: string
+                    type: array
+                  maxAge:
+                    description: MaxAge is the maximum age for CORS preflight cache
+                      in seconds.
+                    maximum: 86400
+                    minimum: 0
+                    type: integer
+                type: object
+              customDenyMessage:
+                description: CustomDenyMessage is a custom message shown when access
+                  is denied.
+                maxLength: 1024
+                type: string
+              customDenyUrl:
+                description: CustomDenyURL is a custom URL to redirect to when access
+                  is denied.
+                type: string
+              customNonIdentityDenyUrl:
+                description: CustomNonIdentityDenyURL is a custom URL for non-identity
+                  deny.
+                type: string
+              customPages:
+                description: CustomPages is a list of custom page IDs to use for the
+                  application.
+                items:
+                  type: string
+                type: array
+              destinations:
+                description: |-
+                  Destinations specifies the destination configurations for the application.
+                  This is more flexible than SelfHostedDomains and supports both public and private destinations.
+                items:
+                  description: AccessDestination represents a destination for an Access
+                    Application.
+                  properties:
+                    cidr:
+                      description: CIDR is the destination CIDR for private destinations.
+                      type: string
+                    hostname:
+                      description: Hostname is the destination hostname for private
+                        destinations.
+                      type: string
+                    l4Protocol:
+                      description: L4Protocol specifies the Layer 4 protocol for private
+                        destinations.
+                      enum:
+                      - tcp
+                      - udp
+                      type: string
+                    portRange:
+                      description: PortRange specifies the port range for private
+                        destinations (e.g., "80", "80-443").
+                      type: string
+                    type:
+                      description: Type specifies the destination type (public or
+                        private).
+                      enum:
+                      - public
+                      - private
+                      type: string
+                    uri:
+                      description: |-
+                        URI is the destination URI for public destinations.
+                        Required for public destinations.
+                      type: string
+                    vnetRef:
+                      description: |-
+                        VnetRef references a VirtualNetwork with flexible reference modes.
+                        Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                      properties:
+                        cloudflareId:
+                          description: |-
+                            CloudflareID is the Cloudflare VNet UUID.
+                            Use this to directly reference a Cloudflare-managed VNet
+                            without creating a corresponding K8s VirtualNetwork resource.
+                          type: string
+                        cloudflareName:
+                          description: |-
+                            CloudflareName is the display name of the VNet in Cloudflare.
+                            The controller will resolve this name to an ID via the Cloudflare API.
+                          maxLength: 255
+                          type: string
+                        name:
+                          description: |-
+                            Name is the K8s VirtualNetwork resource name.
+                            The controller will look up the CRD and use its status.virtualNetworkId.
+                          maxLength: 253
+                          type: string
+                      type: object
+                  required:
+                  - type
+                  type: object
+                maxItems: 50
+                type: array
+              domain:
+                description: Domain is the primary domain/URL for the application.
+                type: string
+              domainType:
+                description: DomainType specifies the type of domain (public or private).
+                enum:
+                - public
+                - private
+                type: string
+              enableBindingCookie:
+                description: EnableBindingCookie enables the binding cookie.
+                type: boolean
+              gatewayRules:
+                description: GatewayRules is a list of Gateway rule IDs associated
+                  with the application.
+                items:
+                  type: string
+                type: array
+              httpOnlyCookieAttribute:
+                description: HttpOnlyCookieAttribute sets the HttpOnly attribute on
+                  the cookie.
+                type: boolean
+              identityProviderRefs:
+                description: |-
+                  IdentityProviderRefs references AccessIdentityProvider resources with flexible reference modes.
+                  Each reference can be:
+                  - K8s AccessIdentityProvider name (via name field)
+                  - Cloudflare IdP UUID (via cloudflareId field)
+                  - Cloudflare IdP display name (via cloudflareName field)
+                items:
+                  description: |-
+                    AccessIdentityProviderRefV2 references an AccessIdentityProvider.
+                    Supports K8s name, Cloudflare UUID, or Cloudflare display name.
+                    Exactly one of name, cloudflareId, or cloudflareName must be set.
+                  properties:
+                    cloudflareId:
+                      description: |-
+                        CloudflareID is the Cloudflare IdP UUID.
+                        Use this to directly reference a Cloudflare-managed IdP
+                        without creating a corresponding K8s AccessIdentityProvider resource.
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      type: string
+                    cloudflareName:
+                      description: |-
+                        CloudflareName is the display name of the IdP in Cloudflare.
+                        The controller will resolve this name to an ID via the Cloudflare API.
+                        Use this when you want to reference an IdP by name
+                        (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                      maxLength: 255
+                      type: string
+                    name:
+                      description: |-
+                        Name is the K8s AccessIdentityProvider resource name.
+                        The controller will look up the CRD and use its status.providerID.
+                      maxLength: 253
+                      type: string
+                  type: object
+                type: array
+              logoUrl:
+                description: LogoURL is the URL of the application logo.
+                type: string
+              name:
+                description: |-
+                  Name of the Access Application in Cloudflare.
+                  If not specified, the Kubernetes resource name will be used.
+                maxLength: 255
+                type: string
+              optionsPreflightBypass:
+                description: OptionsPreflightBypass allows CORS preflight requests
+                  to bypass Access authentication.
+                type: boolean
+              pathCookieAttribute:
+                description: PathCookieAttribute sets the Path attribute on the cookie.
+                type: boolean
+              policies:
+                description: |-
+                  Policies defines the inline access policies for this application (DEPRECATED).
+                  Use ReusablePolicyRefs to reference AccessPolicy CRDs instead.
+                  This field will be removed in a future version.
+
+                  Deprecated: Use reusablePolicyRefs instead.
+                items:
+                  description: |-
+                    AccessPolicyRef references an access policy or defines an inline policy.
+                    You can either:
+                    1. Reference an AccessGroup using name, groupId, or cloudflareGroupName (simple mode)
+                    2. Define inline include/exclude/require rules directly (advanced mode)
+                    When using inline rules, group references are ignored.
+                  properties:
+                    cloudflareGroupName:
+                      description: |-
+                        CloudflareGroupName is the display name of an existing Cloudflare Access Group.
+                        The controller will resolve this name to a GroupID via the Cloudflare API.
+                        Use this when you want to reference a Cloudflare Access Group by name
+                        (e.g., groups created via Terraform or the Cloudflare dashboard).
+                        Mutually exclusive with name, groupId, and inline rules.
+                      maxLength: 255
+                      type: string
+                    decision:
+                      default: allow
+                      description: Decision is the policy decision (allow, deny, bypass,
+                        non_identity).
+                      enum:
+                      - allow
+                      - deny
+                      - bypass
+                      - non_identity
+                      type: string
+                    exclude:
+                      description: |-
+                        Exclude defines the rules that deny access. Users matching ANY rule in the exclude
+                        list will be denied access, even if they match an include rule (NOT logic).
+                      items:
+                        description: AccessGroupRule defines a single rule in an Access
+                          Group.
+                        properties:
+                          anyValidServiceToken:
+                            description: AnyValidServiceToken matches any valid service
+                              token.
+                            type: boolean
+                          authContext:
+                            description: AuthContext matches Azure Authentication
+                              Context.
+                            properties:
+                              acId:
+                                description: AcID is the Azure AD Conditional Access
+                                  Policy ID.
+                                type: string
+                              id:
+                                description: ID is the Azure Authentication Context
+                                  ID.
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - acId
+                            - id
+                            type: object
+                          authMethod:
+                            description: AuthMethod enforces different MFA options.
+                            properties:
+                              authMethod:
+                                description: AuthMethod is the authentication method
+                                  type (e.g., "mfa").
+                                type: string
+                            required:
+                            - authMethod
+                            type: object
+                          azure:
+                            description: Azure matches users from Azure AD groups.
+                            properties:
+                              id:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - id
+                            type: object
+                          certificate:
+                            description: Certificate matches requests with a valid
+                              mTLS certificate.
+                            type: boolean
+                          commonName:
+                            description: CommonName matches mTLS certificates with
+                              a specific common name.
+                            properties:
+                              commonName:
+                                type: string
+                            required:
+                            - commonName
+                            type: object
+                          country:
+                            description: Country matches users from specific countries.
+                            properties:
+                              country:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - country
+                            type: object
+                          devicePosture:
+                            description: DevicePosture matches devices that pass posture
+                              checks.
+                            properties:
+                              integrationUid:
+                                type: string
+                            required:
+                            - integrationUid
+                            type: object
+                          email:
+                            description: Email matches a specific email address.
+                            properties:
+                              email:
+                                type: string
+                            required:
+                            - email
+                            type: object
+                          emailDomain:
+                            description: EmailDomain matches all emails from a domain.
+                            properties:
+                              domain:
+                                type: string
+                            required:
+                            - domain
+                            type: object
+                          emailList:
+                            description: EmailList matches emails from a predefined
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the email
+                                  list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          everyone:
+                            description: Everyone matches all users.
+                            type: boolean
+                          externalEvaluation:
+                            description: ExternalEvaluation calls an external endpoint
+                              for evaluation.
+                            properties:
+                              evaluateUrl:
+                                type: string
+                              keysUrl:
+                                type: string
+                            required:
+                            - evaluateUrl
+                            - keysUrl
+                            type: object
+                          github:
+                            description: GitHub matches users from GitHub organizations.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                type: string
+                              teams:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - name
+                            type: object
+                          group:
+                            description: Group matches users in a specific IdP group.
+                            properties:
+                              id:
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          gsuite:
+                            description: GSUITE matches users from Google Workspace.
+                            properties:
+                              email:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - email
+                            type: object
+                          ipList:
+                            description: IPList matches users from a predefined IP
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the IP list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          ipRanges:
+                            description: IPRanges matches users from specific IP ranges.
+                            properties:
+                              ip:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - ip
+                            type: object
+                          loginMethod:
+                            description: LoginMethod matches a specific identity provider.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            type: object
+                          oidc:
+                            description: OIDC matches users based on OIDC claims.
+                            properties:
+                              claimName:
+                                type: string
+                              claimValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - claimName
+                            - claimValue
+                            type: object
+                          okta:
+                            description: Okta matches users from Okta groups.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                description: Name is the Okta group name.
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          saml:
+                            description: SAML matches users based on SAML attributes.
+                            properties:
+                              attributeName:
+                                type: string
+                              attributeValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - attributeName
+                            - attributeValue
+                            type: object
+                          serviceToken:
+                            description: ServiceToken matches requests with a specific
+                              service token.
+                            properties:
+                              tokenId:
+                                type: string
+                            required:
+                            - tokenId
+                            type: object
+                        type: object
+                      type: array
+                    groupId:
+                      description: |-
+                        GroupID is the UUID of an existing Cloudflare Access Group.
+                        Use this to directly reference a Cloudflare-managed Access Group
+                        without creating a corresponding Kubernetes AccessGroup resource.
+                        Mutually exclusive with name, cloudflareGroupName, and inline rules.
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      type: string
+                    include:
+                      description: |-
+                        Include defines the rules that grant access. Users matching ANY rule in the include
+                        list will be granted access (OR logic). At least one include rule is required
+                        when using inline rules mode.
+                        Uses the same rule types as AccessGroup (email, emailDomain, group, ipRanges, etc.).
+                      items:
+                        description: AccessGroupRule defines a single rule in an Access
+                          Group.
+                        properties:
+                          anyValidServiceToken:
+                            description: AnyValidServiceToken matches any valid service
+                              token.
+                            type: boolean
+                          authContext:
+                            description: AuthContext matches Azure Authentication
+                              Context.
+                            properties:
+                              acId:
+                                description: AcID is the Azure AD Conditional Access
+                                  Policy ID.
+                                type: string
+                              id:
+                                description: ID is the Azure Authentication Context
+                                  ID.
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - acId
+                            - id
+                            type: object
+                          authMethod:
+                            description: AuthMethod enforces different MFA options.
+                            properties:
+                              authMethod:
+                                description: AuthMethod is the authentication method
+                                  type (e.g., "mfa").
+                                type: string
+                            required:
+                            - authMethod
+                            type: object
+                          azure:
+                            description: Azure matches users from Azure AD groups.
+                            properties:
+                              id:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - id
+                            type: object
+                          certificate:
+                            description: Certificate matches requests with a valid
+                              mTLS certificate.
+                            type: boolean
+                          commonName:
+                            description: CommonName matches mTLS certificates with
+                              a specific common name.
+                            properties:
+                              commonName:
+                                type: string
+                            required:
+                            - commonName
+                            type: object
+                          country:
+                            description: Country matches users from specific countries.
+                            properties:
+                              country:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - country
+                            type: object
+                          devicePosture:
+                            description: DevicePosture matches devices that pass posture
+                              checks.
+                            properties:
+                              integrationUid:
+                                type: string
+                            required:
+                            - integrationUid
+                            type: object
+                          email:
+                            description: Email matches a specific email address.
+                            properties:
+                              email:
+                                type: string
+                            required:
+                            - email
+                            type: object
+                          emailDomain:
+                            description: EmailDomain matches all emails from a domain.
+                            properties:
+                              domain:
+                                type: string
+                            required:
+                            - domain
+                            type: object
+                          emailList:
+                            description: EmailList matches emails from a predefined
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the email
+                                  list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          everyone:
+                            description: Everyone matches all users.
+                            type: boolean
+                          externalEvaluation:
+                            description: ExternalEvaluation calls an external endpoint
+                              for evaluation.
+                            properties:
+                              evaluateUrl:
+                                type: string
+                              keysUrl:
+                                type: string
+                            required:
+                            - evaluateUrl
+                            - keysUrl
+                            type: object
+                          github:
+                            description: GitHub matches users from GitHub organizations.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                type: string
+                              teams:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - name
+                            type: object
+                          group:
+                            description: Group matches users in a specific IdP group.
+                            properties:
+                              id:
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          gsuite:
+                            description: GSUITE matches users from Google Workspace.
+                            properties:
+                              email:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - email
+                            type: object
+                          ipList:
+                            description: IPList matches users from a predefined IP
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the IP list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          ipRanges:
+                            description: IPRanges matches users from specific IP ranges.
+                            properties:
+                              ip:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - ip
+                            type: object
+                          loginMethod:
+                            description: LoginMethod matches a specific identity provider.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            type: object
+                          oidc:
+                            description: OIDC matches users based on OIDC claims.
+                            properties:
+                              claimName:
+                                type: string
+                              claimValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - claimName
+                            - claimValue
+                            type: object
+                          okta:
+                            description: Okta matches users from Okta groups.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                description: Name is the Okta group name.
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          saml:
+                            description: SAML matches users based on SAML attributes.
+                            properties:
+                              attributeName:
+                                type: string
+                              attributeValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - attributeName
+                            - attributeValue
+                            type: object
+                          serviceToken:
+                            description: ServiceToken matches requests with a specific
+                              service token.
+                            properties:
+                              tokenId:
+                                type: string
+                            required:
+                            - tokenId
+                            type: object
+                        type: object
+                      type: array
+                    name:
+                      description: |-
+                        Name is the name of an AccessGroup resource (Kubernetes) to use as a policy.
+                        If specified, the controller will look up the AccessGroup CR and use its GroupID.
+                        Mutually exclusive with groupId, cloudflareGroupName, and inline rules.
+                      maxLength: 253
+                      type: string
+                    policyName:
+                      description: |-
+                        PolicyName is the name for this policy in Cloudflare.
+                        If not specified, a name will be auto-generated based on the AccessApplication name and precedence.
+                      maxLength: 255
+                      type: string
+                    precedence:
+                      description: Precedence is the order of evaluation. Lower numbers
+                        are evaluated first.
+                      minimum: 1
+                      type: integer
+                    require:
+                      description: |-
+                        Require defines the rules that must ALL be satisfied (AND logic).
+                        Users must match ALL require rules in addition to at least one include rule.
+                      items:
+                        description: AccessGroupRule defines a single rule in an Access
+                          Group.
+                        properties:
+                          anyValidServiceToken:
+                            description: AnyValidServiceToken matches any valid service
+                              token.
+                            type: boolean
+                          authContext:
+                            description: AuthContext matches Azure Authentication
+                              Context.
+                            properties:
+                              acId:
+                                description: AcID is the Azure AD Conditional Access
+                                  Policy ID.
+                                type: string
+                              id:
+                                description: ID is the Azure Authentication Context
+                                  ID.
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - acId
+                            - id
+                            type: object
+                          authMethod:
+                            description: AuthMethod enforces different MFA options.
+                            properties:
+                              authMethod:
+                                description: AuthMethod is the authentication method
+                                  type (e.g., "mfa").
+                                type: string
+                            required:
+                            - authMethod
+                            type: object
+                          azure:
+                            description: Azure matches users from Azure AD groups.
+                            properties:
+                              id:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - id
+                            type: object
+                          certificate:
+                            description: Certificate matches requests with a valid
+                              mTLS certificate.
+                            type: boolean
+                          commonName:
+                            description: CommonName matches mTLS certificates with
+                              a specific common name.
+                            properties:
+                              commonName:
+                                type: string
+                            required:
+                            - commonName
+                            type: object
+                          country:
+                            description: Country matches users from specific countries.
+                            properties:
+                              country:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - country
+                            type: object
+                          devicePosture:
+                            description: DevicePosture matches devices that pass posture
+                              checks.
+                            properties:
+                              integrationUid:
+                                type: string
+                            required:
+                            - integrationUid
+                            type: object
+                          email:
+                            description: Email matches a specific email address.
+                            properties:
+                              email:
+                                type: string
+                            required:
+                            - email
+                            type: object
+                          emailDomain:
+                            description: EmailDomain matches all emails from a domain.
+                            properties:
+                              domain:
+                                type: string
+                            required:
+                            - domain
+                            type: object
+                          emailList:
+                            description: EmailList matches emails from a predefined
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the email
+                                  list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          everyone:
+                            description: Everyone matches all users.
+                            type: boolean
+                          externalEvaluation:
+                            description: ExternalEvaluation calls an external endpoint
+                              for evaluation.
+                            properties:
+                              evaluateUrl:
+                                type: string
+                              keysUrl:
+                                type: string
+                            required:
+                            - evaluateUrl
+                            - keysUrl
+                            type: object
+                          github:
+                            description: GitHub matches users from GitHub organizations.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                type: string
+                              teams:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - name
+                            type: object
+                          group:
+                            description: Group matches users in a specific IdP group.
+                            properties:
+                              id:
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          gsuite:
+                            description: GSUITE matches users from Google Workspace.
+                            properties:
+                              email:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - email
+                            type: object
+                          ipList:
+                            description: IPList matches users from a predefined IP
+                              list.
+                            properties:
+                              id:
+                                description: ID is the Cloudflare ID of the IP list.
+                                type: string
+                            required:
+                            - id
+                            type: object
+                          ipRanges:
+                            description: IPRanges matches users from specific IP ranges.
+                            properties:
+                              ip:
+                                items:
+                                  type: string
+                                type: array
+                            required:
+                            - ip
+                            type: object
+                          loginMethod:
+                            description: LoginMethod matches a specific identity provider.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            type: object
+                          oidc:
+                            description: OIDC matches users based on OIDC claims.
+                            properties:
+                              claimName:
+                                type: string
+                              claimValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - claimName
+                            - claimValue
+                            type: object
+                          okta:
+                            description: Okta matches users from Okta groups.
+                            properties:
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                              name:
+                                description: Name is the Okta group name.
+                                type: string
+                            required:
+                            - name
+                            type: object
+                          saml:
+                            description: SAML matches users based on SAML attributes.
+                            properties:
+                              attributeName:
+                                type: string
+                              attributeValue:
+                                type: string
+                              idpRef:
+                                description: |-
+                                  IdpRef references an AccessIdentityProvider with flexible reference modes.
+                                  Can reference by K8s name, Cloudflare UUID, or Cloudflare display name.
+                                properties:
+                                  cloudflareId:
+                                    description: |-
+                                      CloudflareID is the Cloudflare IdP UUID.
+                                      Use this to directly reference a Cloudflare-managed IdP
+                                      without creating a corresponding K8s AccessIdentityProvider resource.
+                                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                    type: string
+                                  cloudflareName:
+                                    description: |-
+                                      CloudflareName is the display name of the IdP in Cloudflare.
+                                      The controller will resolve this name to an ID via the Cloudflare API.
+                                      Use this when you want to reference an IdP by name
+                                      (e.g., IdPs created via Terraform or the Cloudflare dashboard).
+                                    maxLength: 255
+                                    type: string
+                                  name:
+                                    description: |-
+                                      Name is the K8s AccessIdentityProvider resource name.
+                                      The controller will look up the CRD and use its status.providerID.
+                                    maxLength: 253
+                                    type: string
+                                type: object
+                            required:
+                            - attributeName
+                            - attributeValue
+                            type: object
+                          serviceToken:
+                            description: ServiceToken matches requests with a specific
+                              service token.
+                            properties:
+                              tokenId:
+                                type: string
+                            required:
+                            - tokenId
+                            type: object
+                        type: object
+                      type: array
+                    sessionDuration:
+                      description: SessionDuration overrides the application's session
+                        duration for this policy.
+                      type: string
+                  type: object
+                type: array
+              privateAddress:
+                description: PrivateAddress is the private address for private applications.
+                type: string
+              reusableGroupRefs:
+                description: |-
+                  ReusableGroupRefs references AccessGroup resources for SCIM group inclusion rules.
+                  These groups can be used in Include rules for access control.
+                  Each reference can be:
+                  - K8s AccessGroup name (via name field)
+                  - Cloudflare Group UUID (via cloudflareId field)
+                  - Cloudflare Group display name (via cloudflareName field)
+                items:
+                  description: |-
+                    ReusableGroupRef references an AccessGroup.
+                    Supports K8s name, Cloudflare UUID, or Cloudflare display name.
+                    Exactly one of name, cloudflareId, or cloudflareName must be set.
+                  properties:
+                    cloudflareId:
+                      description: |-
+                        CloudflareID is the Cloudflare Group UUID.
+                        Use this to directly reference a Cloudflare-managed group
+                        without creating a corresponding K8s AccessGroup resource.
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      type: string
+                    cloudflareName:
+                      description: |-
+                        CloudflareName is the display name of the group in Cloudflare.
+                        The controller will resolve this name to an ID via the Cloudflare API.
+                      maxLength: 255
+                      type: string
+                    name:
+                      description: |-
+                        Name is the K8s AccessGroup resource name.
+                        The controller will look up the CRD and use its status.groupId.
+                      maxLength: 253
+                      type: string
+                  type: object
+                type: array
+              reusablePolicyRefs:
+                description: |-
+                  ReusablePolicyRefs references existing Access Policies to attach to this application.
+                  These can be:
+                  - Kubernetes AccessPolicy resources (via name field)
+                  - Cloudflare policy IDs (via cloudflareId field)
+                  - Cloudflare policy names (via cloudflareName field)
+                  Policies are applied in the order specified, with precedence determining evaluation order.
+                  The first policy in the array has the highest priority.
+                items:
+                  description: |-
+                    ReusablePolicyRef references a reusable AccessPolicy resource.
+                    Exactly one of name, cloudflareId, or cloudflareName must be specified.
+                  properties:
+                    cloudflareId:
+                      description: |-
+                        CloudflareID is the UUID of an existing Cloudflare reusable Access Policy.
+                        Use this to directly reference a Cloudflare-managed policy
+                        without creating a corresponding Kubernetes AccessPolicy resource.
+                        Mutually exclusive with name and cloudflareName.
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      type: string
+                    cloudflareName:
+                      description: |-
+                        CloudflareName is the display name of an existing Cloudflare reusable Access Policy.
+                        The controller will resolve this name to a PolicyID via the Cloudflare API.
+                        Use this when you want to reference a Cloudflare policy by name
+                        (e.g., policies created via Terraform or the Cloudflare dashboard).
+                        Mutually exclusive with name and cloudflareId.
+                      maxLength: 255
+                      type: string
+                    name:
+                      description: |-
+                        Name is the name of a K8s AccessPolicy resource.
+                        The controller will look up the AccessPolicy CR and use its PolicyID.
+                        Mutually exclusive with cloudflareId and cloudflareName.
+                      maxLength: 253
+                      type: string
+                    precedence:
+                      description: |-
+                        Precedence overrides the policy's default precedence when attached to this application.
+                        If not specified, the policy's own precedence value is used.
+                      minimum: 1
+                      type: integer
+                  type: object
+                type: array
+              saasApp:
+                description: SaasApp configures the SaaS application settings (for
+                  type=saas).
+                properties:
+                  accessTokenLifetime:
+                    description: AccessTokenLifetime is the lifetime of the access
+                      token.
+                    type: string
+                  allowPkceWithoutClientSecret:
+                    description: AllowPKCEWithoutClientSecret allows PKCE without
+                      a client secret.
+                    type: boolean
+                  appLauncherUrl:
+                    description: AppLauncherURL is the URL to launch the app from
+                      the app launcher.
+                    type: string
+                  authType:
+                    description: AuthType specifies the authentication type (saml
+                      or oidc).
+                    enum:
+                    - saml
+                    - oidc
+                    type: string
+                  consumerServiceUrl:
+                    description: ConsumerServiceURL is the SAML consumer service URL.
+                    type: string
+                  customAttributes:
+                    description: CustomAttributes defines custom SAML attributes.
+                    items:
+                      description: SAMLAttributeConfig represents a custom SAML attribute.
+                      properties:
+                        friendlyName:
+                          description: FriendlyName is the friendly name of the attribute.
+                          type: string
+                        name:
+                          description: Name is the attribute name.
+                          type: string
+                        nameFormat:
+                          description: NameFormat is the attribute name format.
+                          type: string
+                        required:
+                          description: Required indicates if this attribute is required.
+                          type: boolean
+                        source:
+                          description: Source specifies the source of the attribute
+                            value.
+                          properties:
+                            name:
+                              description: Name is the name of the source attribute.
+                              type: string
+                            nameByIdp:
+                              additionalProperties:
+                                type: string
+                              description: NameByIDP is a map of IdP name to attribute
+                                name.
+                              type: object
+                          required:
+                          - name
+                          type: object
+                      required:
+                      - name
+                      - source
+                      type: object
+                    type: array
+                  customClaims:
+                    description: CustomClaims defines custom OIDC claims.
+                    items:
+                      description: OIDCClaimConfig represents a custom OIDC claim.
+                      properties:
+                        name:
+                          description: Name is the claim name.
+                          type: string
+                        required:
+                          description: Required indicates if this claim is required.
+                          type: boolean
+                        scope:
+                          description: Scope is the scope for this claim.
+                          type: string
+                        source:
+                          description: Source specifies the source of the claim value.
+                          properties:
+                            name:
+                              description: Name is the name of the source attribute.
+                              type: string
+                            nameByIdp:
+                              additionalProperties:
+                                type: string
+                              description: NameByIDP is a map of IdP name to claim
+                                name.
+                              type: object
+                          required:
+                          - name
+                          type: object
+                      required:
+                      - name
+                      - source
+                      type: object
+                    type: array
+                  defaultRelayState:
+                    description: DefaultRelayState is the default relay state for
+                      SAML.
+                    type: string
+                  grantTypes:
+                    description: GrantTypes is a list of allowed grant types for OIDC.
+                    items:
+                      type: string
+                    type: array
+                  groupFilterRegex:
+                    description: GroupFilterRegex is a regex for filtering groups
+                      in OIDC claims.
+                    type: string
+                  hybridAndImplicitOptions:
+                    description: HybridAndImplicitOptions configures hybrid and implicit
+                      flow options.
+                    properties:
+                      returnAccessTokenFromAuthorizationEndpoint:
+                        description: |-
+                          ReturnAccessTokenFromAuthorizationEndpoint indicates whether to return an access token
+                          from the authorization endpoint.
+                        type: boolean
+                      returnIdTokenFromAuthorizationEndpoint:
+                        description: |-
+                          ReturnIDTokenFromAuthorizationEndpoint indicates whether to return an ID token
+                          from the authorization endpoint.
+                        type: boolean
+                    type: object
+                  nameIdFormat:
+                    description: NameIDFormat is the SAML name ID format.
+                    enum:
+                    - id
+                    - email
+                    type: string
+                  nameIdTransformJsonata:
+                    description: NameIDTransformJsonata is a JSONata expression for
+                      transforming the name ID.
+                    type: string
+                  redirectUris:
+                    description: RedirectURIs is a list of allowed redirect URIs for
+                      OIDC.
+                    items:
+                      type: string
+                    type: array
+                  refreshTokenOptions:
+                    description: RefreshTokenOptions configures refresh token behavior.
+                    properties:
+                      lifetime:
+                        description: Lifetime is the lifetime of the refresh token.
+                        type: string
+                    type: object
+                  samlAttributeTransformJsonata:
+                    description: SamlAttributeTransformJsonata is a JSONata expression
+                      for transforming SAML attributes.
+                    type: string
+                  scopes:
+                    description: Scopes is a list of allowed scopes for OIDC.
+                    items:
+                      type: string
+                    type: array
+                  spEntityId:
+                    description: SPEntityID is the SAML service provider entity ID.
+                    type: string
+                required:
+                - authType
+                type: object
+              sameSiteCookieAttribute:
+                description: SameSiteCookieAttribute sets the SameSite attribute on
+                  the cookie.
+                enum:
+                - strict
+                - lax
+                - none
+                type: string
+              scimConfig:
+                description: SCIMConfig configures SCIM provisioning for the application.
+                properties:
+                  authentication:
+                    description: Authentication configures SCIM authentication.
+                    properties:
+                      authorizationUrl:
+                        description: AuthorizationURL is the OAuth authorization URL.
+                        type: string
+                      clientId:
+                        description: ClientID is the OAuth client ID.
+                        type: string
+                      clientSecret:
+                        description: |-
+                          ClientSecret is the OAuth client secret.
+                          Should be stored in a Secret and referenced.
+                        type: string
+                      password:
+                        description: |-
+                          Password is the password for HTTP basic authentication.
+                          Should be stored in a Secret and referenced.
+                        type: string
+                      scheme:
+                        description: Scheme is the authentication scheme (httpbasic,
+                          oauthbearertoken, oauth2).
+                        enum:
+                        - httpbasic
+                        - oauthbearertoken
+                        - oauth2
+                        type: string
+                      scopes:
+                        description: Scopes is a list of OAuth scopes.
+                        items:
+                          type: string
+                        type: array
+                      token:
+                        description: |-
+                          Token is the bearer token for OAuth bearer token authentication.
+                          Should be stored in a Secret and referenced.
+                        type: string
+                      tokenUrl:
+                        description: TokenURL is the OAuth token URL.
+                        type: string
+                      user:
+                        description: User is the username for HTTP basic authentication.
+                        type: string
+                    required:
+                    - scheme
+                    type: object
+                  deactivateOnDelete:
+                    description: DeactivateOnDelete deactivates users on delete instead
+                      of deleting.
+                    type: boolean
+                  enabled:
+                    description: Enabled enables SCIM provisioning.
+                    type: boolean
+                  idpUid:
+                    description: IDPUID is the identity provider UID for SCIM.
+                    type: string
+                  mappings:
+                    description: Mappings defines SCIM attribute mappings.
+                    items:
+                      description: SCIMMapping represents a SCIM attribute mapping.
+                      properties:
+                        enabled:
+                          description: Enabled enables this mapping.
+                          type: boolean
+                        filter:
+                          description: Filter is a SCIM filter expression.
+                          type: string
+                        operations:
+                          description: Operations configures which SCIM operations
+                            are supported.
+                          properties:
+                            create:
+                              description: Create enables the create operation.
+                              type: boolean
+                            delete:
+                              description: Delete enables the delete operation.
+                              type: boolean
+                            update:
+                              description: Update enables the update operation.
+                              type: boolean
+                          type: object
+                        schema:
+                          description: Schema is the SCIM schema (e.g., "urn:ietf:params:scim:schemas:core:2.0:User").
+                          type: string
+                        strictness:
+                          description: Strictness specifies how strictly to enforce
+                            the schema.
+                          enum:
+                          - strict
+                          - loose
+                          type: string
+                        transformJsonata:
+                          description: TransformJsonata is a JSONata expression for
+                            transforming the mapping.
+                          type: string
+                      required:
+                      - schema
+                      type: object
+                    type: array
+                  remoteUri:
+                    description: RemoteURI is the remote SCIM endpoint URI.
+                    type: string
+                type: object
+              selfHostedDomains:
+                description: |-
+                  SelfHostedDomains is a list of additional domains for the application.
+                  This allows protecting multiple domains with a single Access Application.
+                  Each domain should be a fully qualified domain name (e.g., "app.example.com" or "app.example.com/path").
+                items:
+                  type: string
+                maxItems: 50
+                type: array
+              serviceAuth401Redirect:
+                description: ServiceAuth401Redirect redirects unauthorized service
+                  auth requests.
+                type: boolean
+              sessionDuration:
+                default: 24h
+                description: SessionDuration is the amount of time that the token
+                  is valid for.
+                type: string
+              skipInterstitial:
+                description: SkipInterstitial skips the interstitial page.
+                type: boolean
+              tags:
+                description: Tags are custom tags for the application.
+                items:
+                  type: string
+                type: array
+              targetContexts:
+                description: TargetContexts specifies the target criteria for infrastructure
+                  applications.
+                items:
+                  description: AccessInfrastructureTargetContext specifies target
+                    criteria for infrastructure applications.
+                  properties:
+                    port:
+                      description: Port is the target port.
+                      maximum: 65535
+                      minimum: 1
+                      type: integer
+                    protocol:
+                      description: Protocol is the target protocol (SSH, RDP, etc.).
+                      enum:
+                      - SSH
+                      - RDP
+                      type: string
+                    targetAttributes:
+                      additionalProperties:
+                        items:
+                          type: string
+                        type: array
+                      description: TargetAttributes is a map of target attribute names
+                        to their allowed values.
+                      type: object
+                  required:
+                  - port
+                  - protocol
+                  - targetAttributes
+                  type: object
+                type: array
+              type:
+                default: self_hosted
+                description: Type is the application type.
+                enum:
+                - self_hosted
+                - saas
+                - ssh
+                - vnc
+                - app_launcher
+                - warp
+                - biso
+                - bookmark
+                - dash_sso
+                - infrastructure
+                type: string
+            required:
+            - cloudflare
+            - domain
+            - type
+            type: object
+          status:
+            description: AccessApplicationStatus defines the observed state of AccessApplication
+            properties:
+              accountId:
+                description: AccountID is the Cloudflare Account ID.
+                type: string
+              applicationId:
+                description: ApplicationID is the Cloudflare ID of the Access Application.
+                type: string
+              aud:
+                description: AUD is the Application Audience (AUD) Tag.
+                type: string
+              conditions:
+                description: Conditions represent the latest available observations.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              domain:
+                description: Domain is the primary configured domain.
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation observed.
+                format: int64
+                type: integer
+              resolvedPolicies:
+                description: |-
+                  ResolvedPolicies contains the resolved policy information for each inline policy.
+                  This helps with debugging and understanding policy state.
+                items:
+                  description: ResolvedPolicyStatus contains resolved policy information
+                    for debugging and status tracking.
+                  properties:
+                    decision:
+                      description: Decision is the policy decision (allow, deny, bypass,
+                        non_identity).
+                      type: string
+                    groupId:
+                      description: GroupID is the resolved Cloudflare Access Group
+                        ID.
+                      type: string
+                    groupName:
+                      description: GroupName is the name of the Access Group (for
+                        display purposes).
+                      type: string
+                    policyId:
+                      description: PolicyID is the Cloudflare policy ID.
+                      type: string
+                    precedence:
+                      description: Precedence is the policy precedence (order of evaluation).
+                      type: integer
+                    source:
+                      description: |-
+                        Source indicates how the group was resolved.
+                        Possible values: k8s, groupId, cloudflareGroupName
+                      enum:
+                      - k8s
+                      - groupId
+                      - cloudflareGroupName
+                      type: string
+                  required:
+                  - precedence
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - precedence
+                x-kubernetes-list-type: map
+              resolvedPolicyIds:
+                description: |-
+                  ResolvedPolicyIDs contains the Cloudflare policy IDs attached to this application.
+                  These are the final resolved policy IDs in the order they were applied.
+                items:
+                  type: string
+                type: array
+              resolvedReusablePolicies:
+                description: |-
+                  ResolvedReusablePolicies contains the resolved reusable policy information.
+                  These are policies referenced via reusablePolicyRefs.
+                items:
+                  description: ResolvedReusablePolicyStatus contains resolved reusable
+                    policy information.
+                  properties:
+                    decision:
+                      description: Decision is the policy decision (allow, deny, bypass,
+                        non_identity).
+                      type: string
+                    policyId:
+                      description: PolicyID is the Cloudflare reusable policy ID.
+                      type: string
+                    policyName:
+                      description: PolicyName is the name of the reusable policy (for
+                        display purposes).
+                      type: string
+                    precedence:
+                      description: Precedence is the policy precedence when attached
+                        to this application.
+                      type: integer
+                    source:
+                      description: |-
+                        Source indicates how the policy was resolved.
+                        Possible values: k8s, cloudflareId, cloudflareName
+                      enum:
+                      - k8s
+                      - cloudflareId
+                      - cloudflareName
+                      type: string
+                  type: object
+                type: array
+              saasAppClientId:
+                description: SaasAppClientID is the OIDC client ID (for SaaS applications
+                  with OIDC).
+                type: string
+              selfHostedDomains:
+                description: SelfHostedDomains is the list of all configured domains
+                  (from Cloudflare API response).
+                items:
+                  type: string
+                type: array
+              state:
+                description: State indicates the current state of the application.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

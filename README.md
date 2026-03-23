@@ -165,6 +165,19 @@ kubectl apply -f https://github.com/0ekk/cloudflare-operator/releases/latest/dow
 kubectl get pods -n cloudflare-operator-system
 ```
 
+**Option 3: Helm Chart (Recommended for GitOps/values-driven deployment)**
+
+```bash
+helm upgrade --install cloudflare-operator ./charts/cloudflare-operator \
+  --namespace cloudflare-operator-system \
+  --create-namespace
+
+# Verify installation
+kubectl get pods -n cloudflare-operator-system
+```
+
+> Chart defaults to `cloudflare-operator-no-webhook.yaml`, and can enable webhook/cert-manager via values (`webhook.enabled=true`, `certManager.enabled=true`).
+
 **Available Installation Files**
 
 | File | Contents | Use Case |
