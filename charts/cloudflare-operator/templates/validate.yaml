@@ -1,0 +1,3 @@
+{{- if and .Values.certManager.enabled (not .Values.webhook.enabled) -}}
+{{- fail "certManager.enabled=true requires webhook.enabled=true" -}}
+{{- end -}}

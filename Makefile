@@ -204,6 +204,20 @@ lint-full: golangci-lint
 lint-fix: golangci-lint
 	$(GOLANGCI_LINT) run --fix
 
+##@ Helm
+
+HELM ?= helm
+HELM_CHART_DIR ?= charts/cloudflare-operator
+
+.PHONY: helm-lint
+helm-lint: ## Lint Helm chart.
+	$(HELM) lint $(HELM_CHART_DIR)
+
+.PHONY: helm-template
+helm-template: ## Render Helm chart templates.
+	$(HELM) template cloudflare-operator $(HELM_CHART_DIR) --namespace cloudflare-operator-system > /tmp/cloudflare-operator-helm-rendered.yaml
+	@echo "Rendered output: /tmp/cloudflare-operator-helm-rendered.yaml"
+
 ##@ Build
 
 .PHONY: build

@@ -1,0 +1,15 @@
+installCRDs: true
+
+image:
+  repository: ghcr.io/0ekk/cloudflare-operator
+  tag: ""
+  pullPolicy: IfNotPresent
+
+operator:
+  replicas: 1
+
+webhook:
+  enabled: false
+
+certManager:
+  enabled: false

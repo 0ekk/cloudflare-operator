@@ -1,0 +1,1330 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudflare-operator-controller-manager
+  namespace: cloudflare-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cloudflare-operator-leader-election-role
+  namespace: cloudflare-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessapplication-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessapplication-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessgroup-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessgroups/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessgroup-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessgroups
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessgroups/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessidentityprovider-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessidentityproviders
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessidentityproviders/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessidentityprovider-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessidentityproviders
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessidentityproviders/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessservicetoken-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessservicetokens
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessservicetokens/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-accessservicetoken-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessservicetokens
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessservicetokens/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+  name: cloudflare-operator-accesstunnel-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accesstunnels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accesstunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+  name: cloudflare-operator-accesstunnel-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accesstunnels
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accesstunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+  name: cloudflare-operator-clustertunnel-admin-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-clustertunnel-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-clustertunnel-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - clustertunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-deviceposturerule-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - deviceposturerules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - deviceposturerules/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-deviceposturerule-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - deviceposturerules
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - deviceposturerules/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-devicesettingspolicy-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - devicesettingspolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - devicesettingspolicies/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-devicesettingspolicy-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - devicesettingspolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - devicesettingspolicies/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-dnsrecord-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - dnsrecords
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - dnsrecords/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-dnsrecord-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - dnsrecords
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - dnsrecords/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewayconfiguration-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayconfigurations/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewayconfiguration-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayconfigurations/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewaylist-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewaylists
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewaylists/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewaylist-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewaylists
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewaylists/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewayrule-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayrules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayrules/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-gatewayrule-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayrules
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - gatewayrules/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - gatewayclasses
+  - gateways
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - gatewayclasses/status
+  - gateways/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - gateways/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - gateway.networking.k8s.io
+  resources:
+  - httproutes
+  - tcproutes
+  - udproutes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications
+  - accessgroups
+  - accessidentityproviders
+  - accesspolicies
+  - accessservicetokens
+  - accesstunnels
+  - cloudflarecredentials
+  - cloudflaredomains
+  - cloudflaresyncstates
+  - clustertunnels
+  - deviceposturerules
+  - devicesettingspolicies
+  - dnsrecords
+  - domainregistrations
+  - gatewayconfigurations
+  - gatewaylists
+  - gatewayrules
+  - networkroutes
+  - origincacertificates
+  - pagesdeployments
+  - pagesdomains
+  - pagesprojects
+  - pagespromotions
+  - privateservices
+  - r2bucketdomains
+  - r2bucketnotifications
+  - r2buckets
+  - redirectrules
+  - transformrules
+  - tunnelbindings
+  - tunnels
+  - virtualnetworks
+  - warpconnectors
+  - zonerulesets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications/finalizers
+  - accessgroups/finalizers
+  - accessidentityproviders/finalizers
+  - accesspolicies/finalizers
+  - accessservicetokens/finalizers
+  - cloudflarecredentials/finalizers
+  - cloudflaredomains/finalizers
+  - cloudflaresyncstates/finalizers
+  - clustertunnels/finalizers
+  - deviceposturerules/finalizers
+  - devicesettingspolicies/finalizers
+  - dnsrecords/finalizers
+  - domainregistrations/finalizers
+  - gatewayconfigurations/finalizers
+  - gatewaylists/finalizers
+  - gatewayrules/finalizers
+  - networkroutes/finalizers
+  - origincacertificates/finalizers
+  - pagesdeployments/finalizers
+  - pagesdomains/finalizers
+  - pagesprojects/finalizers
+  - pagespromotions/finalizers
+  - privateservices/finalizers
+  - r2bucketdomains/finalizers
+  - r2bucketnotifications/finalizers
+  - r2buckets/finalizers
+  - redirectrules/finalizers
+  - transformrules/finalizers
+  - tunnelbindings/finalizers
+  - tunnels/finalizers
+  - virtualnetworks/finalizers
+  - warpconnectors/finalizers
+  - zonerulesets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - accessapplications/status
+  - accessgroups/status
+  - accessidentityproviders/status
+  - accesspolicies/status
+  - accessservicetokens/status
+  - accesstunnels/status
+  - cloudflarecredentials/status
+  - cloudflaredomains/status
+  - cloudflaresyncstates/status
+  - clustertunnels/status
+  - deviceposturerules/status
+  - devicesettingspolicies/status
+  - dnsrecords/status
+  - domainregistrations/status
+  - gatewayconfigurations/status
+  - gatewaylists/status
+  - gatewayrules/status
+  - networkroutes/status
+  - origincacertificates/status
+  - pagesdeployments/status
+  - pagesdomains/status
+  - pagesprojects/status
+  - pagespromotions/status
+  - privateservices/status
+  - r2bucketdomains/status
+  - r2bucketnotifications/status
+  - r2buckets/status
+  - redirectrules/status
+  - transformrules/status
+  - tunnelbindings/status
+  - tunnelingressclassconfigs/status
+  - tunnels/status
+  - virtualnetworks/status
+  - warpconnectors/status
+  - zonerulesets/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnelgatewayclassconfigs
+  - tunnelingressclassconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingressclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-networkroute-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - networkroutes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - networkroutes/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-networkroute-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - networkroutes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - networkroutes/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-privateservice-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - privateservices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - privateservices/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-privateservice-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - privateservices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - privateservices/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+  name: cloudflare-operator-tunnel-admin-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels
+  verbs:
+  - '*'
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-tunnel-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-tunnel-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnels/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: cloudflare-operator
+    app.kubernetes.io/instance: tunnelbinding-editor-role
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/part-of: cloudflare-operator
+  name: cloudflare-operator-tunnelbinding-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnelbindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnelbindings/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: cloudflare-operator
+    app.kubernetes.io/instance: tunnelbinding-viewer-role
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/part-of: cloudflare-operator
+  name: cloudflare-operator-tunnelbinding-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnelbindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - tunnelbindings/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-virtualnetwork-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - virtualnetworks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - virtualnetworks/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-virtualnetwork-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - virtualnetworks
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - virtualnetworks/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-warpconnector-editor-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - warpconnectors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - warpconnectors/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudflare-operator-warpconnector-viewer-role
+rules:
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - warpconnectors
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.cloudflare-operator.io
+  resources:
+  - warpconnectors/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cloudflare-operator-leader-election-rolebinding
+  namespace: cloudflare-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cloudflare-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: cloudflare-operator-controller-manager
+  namespace: cloudflare-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloudflare-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloudflare-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: cloudflare-operator-controller-manager
+  namespace: cloudflare-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloudflare-operator-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloudflare-operator-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: cloudflare-operator-controller-manager
+  namespace: cloudflare-operator-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+    control-plane: controller-manager
+  name: cloudflare-operator-controller-manager-metrics-service
+  namespace: cloudflare-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: cloudflare-operator
+    control-plane: controller-manager
+  name: cloudflare-operator-controller-manager
+  namespace: cloudflare-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --leader-elect
+        - --leader-election-lease-duration=60s
+        - --leader-election-renew-deadline=40s
+        - --leader-election-retry-period=15s
+        - --health-probe-bind-address=:8081
+        - --zap-encoder=json
+        - --zap-devel=false
+        - --zap-log-level=info
+        - --zap-stacktrace-level=error
+        command:
+        - /manager
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: docker.io/0ekk/cloudflare-operator:0.0.1
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: cloudflare-operator-controller-manager
+      terminationGracePeriodSeconds: 10

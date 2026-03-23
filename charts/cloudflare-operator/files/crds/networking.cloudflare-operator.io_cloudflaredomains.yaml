@@ -1,0 +1,537 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: cloudflaredomains.networking.cloudflare-operator.io
+spec:
+  group: networking.cloudflare-operator.io
+  names:
+    kind: CloudflareDomain
+    listKind: CloudflareDomainList
+    plural: cloudflaredomains
+    shortNames:
+    - cfdomain
+    - cfdom
+    singular: cloudflaredomain
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.domain
+      name: Domain
+      type: string
+    - jsonPath: .status.zoneId
+      name: Zone ID
+      type: string
+    - jsonPath: .spec.isDefault
+      name: Default
+      type: boolean
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          CloudflareDomain represents a domain managed in Cloudflare.
+          It provides zone information (Zone ID) for DNS operations across all CRDs.
+          The controller verifies the domain exists in Cloudflare and caches the Zone ID.
+
+          DomainResolver uses CloudflareDomain resources to match hostnames to zones:
+          - Exact match: hostname equals domain
+          - Suffix match: hostname ends with ".domain" (longest suffix wins)
+
+          Example: For hostname "api.staging.example.com":
+          - CloudflareDomain "example.com" matches (suffix)
+          - CloudflareDomain "staging.example.com" matches better (longer suffix)
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CloudflareDomainSpec defines the desired state of CloudflareDomain
+            properties:
+              cache:
+                description: Cache configures caching settings for this domain
+                properties:
+                  alwaysOnline:
+                    default: true
+                    description: AlwaysOnline serves stale content when origin is
+                      unavailable
+                    type: boolean
+                  browserTTL:
+                    description: |-
+                      BrowserTTL sets the browser cache TTL in seconds
+                      Minimum: 0 (respect origin), Maximum: 31536000 (1 year)
+                    maximum: 31536000
+                    minimum: 0
+                    type: integer
+                  cacheByDeviceType:
+                    default: false
+                    description: |-
+                      CacheByDeviceType caches content separately for mobile/desktop
+                      Requires Enterprise plan
+                    type: boolean
+                  cacheLevel:
+                    default: aggressive
+                    description: CacheLevel sets the cache level
+                    enum:
+                    - bypass
+                    - basic
+                    - simplified
+                    - aggressive
+                    type: string
+                  cacheReserve:
+                    description: CacheReserve configures persistent cache storage
+                    properties:
+                      enabled:
+                        default: false
+                        description: Enabled enables Cache Reserve
+                        type: boolean
+                    type: object
+                  developmentMode:
+                    default: false
+                    description: |-
+                      DevelopmentMode temporarily bypasses cache for development
+                      Automatically disables after 3 hours
+                    type: boolean
+                  sortQueryStringForCache:
+                    default: false
+                    description: |-
+                      SortQueryStringForCache treats query strings with same parameters
+                      but different order as the same for caching purposes
+                      Requires Enterprise plan
+                    type: boolean
+                  tieredCache:
+                    description: TieredCache configures tiered caching
+                    properties:
+                      enabled:
+                        default: true
+                        description: Enabled enables tiered caching
+                        type: boolean
+                      topology:
+                        default: smart
+                        description: |-
+                          Topology sets the tiered cache topology
+                          - smart: Dynamically selects the best upper tier
+                          - generic: Uses regional hub data centers
+                        enum:
+                        - smart
+                        - generic
+                        type: string
+                    type: object
+                type: object
+              credentialsRef:
+                description: |-
+                  CredentialsRef references a CloudflareCredentials resource for API access.
+                  If not specified, the default CloudflareCredentials will be used.
+                properties:
+                  name:
+                    description: Name of the CloudflareCredentials resource
+                    type: string
+                required:
+                - name
+                type: object
+              domain:
+                description: |-
+                  Domain is the domain name (e.g., "example.com")
+                  This should be the apex domain registered in Cloudflare
+                pattern: ^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$
+                type: string
+              isDefault:
+                default: false
+                description: |-
+                  IsDefault marks this domain as the default for resources that don't specify a domain.
+                  Only one CloudflareDomain can be marked as default.
+                  When multiple hostnames need zone lookup, the longest suffix match is used.
+                type: boolean
+              performance:
+                description: Performance configures performance settings for this
+                  domain
+                properties:
+                  brotli:
+                    default: true
+                    description: Brotli enables Brotli compression
+                    type: boolean
+                  earlyHints:
+                    default: true
+                    description: EarlyHints enables 103 Early Hints
+                    type: boolean
+                  http2:
+                    default: true
+                    description: HTTP2 enables HTTP/2 support
+                    type: boolean
+                  http3:
+                    default: true
+                    description: HTTP3 enables HTTP/3 (QUIC) support
+                    type: boolean
+                  ipGeolocation:
+                    default: true
+                    description: IPGeolocation adds visitor's country to request headers
+                    type: boolean
+                  minify:
+                    description: Minify configures code minification
+                    properties:
+                      css:
+                        default: false
+                        description: CSS enables CSS minification
+                        type: boolean
+                      html:
+                        default: false
+                        description: HTML enables HTML minification
+                        type: boolean
+                      javascript:
+                        default: false
+                        description: JavaScript enables JavaScript minification
+                        type: boolean
+                    type: object
+                  mirage:
+                    default: false
+                    description: |-
+                      Mirage enables mobile image optimization
+                      Requires Pro plan or higher
+                    type: boolean
+                  polish:
+                    default: "off"
+                    description: |-
+                      Polish configures image optimization mode
+                      Requires Pro plan or higher
+                    enum:
+                    - "off"
+                    - lossless
+                    - lossy
+                    type: string
+                  prefetchPreload:
+                    default: true
+                    description: PrefetchPreload enables prefetch and preload
+                    type: boolean
+                  rocketLoader:
+                    default: false
+                    description: RocketLoader optimizes JavaScript loading
+                    type: boolean
+                  webp:
+                    default: false
+                    description: |-
+                      WebP enables WebP image conversion
+                      Requires Pro plan or higher
+                    type: boolean
+                  websockets:
+                    default: true
+                    description: Websockets enables WebSocket support
+                    type: boolean
+                  zeroRTT:
+                    default: true
+                    description: ZeroRTT enables 0-RTT Connection Resumption
+                    type: boolean
+                type: object
+              security:
+                description: Security configures security settings for this domain
+                properties:
+                  browserCheck:
+                    default: true
+                    description: BrowserCheck enables browser integrity check
+                    type: boolean
+                  challengePassage:
+                    default: 1800
+                    description: |-
+                      ChallengePassage sets how long a visitor can access the site
+                      after completing a challenge (in seconds)
+                    maximum: 31536000
+                    minimum: 300
+                    type: integer
+                  emailObfuscation:
+                    default: true
+                    description: EmailObfuscation hides email addresses from bots
+                    type: boolean
+                  hotlinkProtection:
+                    default: false
+                    description: HotlinkProtection prevents hotlinking of images
+                    type: boolean
+                  level:
+                    default: medium
+                    description: Level sets the security level
+                    enum:
+                    - "off"
+                    - essentially_off
+                    - low
+                    - medium
+                    - high
+                    - under_attack
+                    type: string
+                  serverSideExclude:
+                    default: true
+                    description: ServerSideExclude enables server-side excludes
+                    type: boolean
+                  waf:
+                    description: WAF configures Web Application Firewall
+                    properties:
+                      enabled:
+                        default: false
+                        description: Enabled enables WAF
+                        type: boolean
+                    type: object
+                type: object
+              ssl:
+                description: SSL configures SSL/TLS settings for this domain
+                properties:
+                  alwaysUseHttps:
+                    default: true
+                    description: AlwaysUseHTTPS redirects all HTTP requests to HTTPS
+                    type: boolean
+                  authenticatedOriginPull:
+                    description: AuthenticatedOriginPull configures mTLS between Cloudflare
+                      and origin
+                    properties:
+                      certificateSecretRef:
+                        description: |-
+                          CertificateSecretRef references a Secret containing custom client certificate
+                          If not specified, Cloudflare's default certificate will be used
+                        properties:
+                          apiKeyKey:
+                            default: CLOUDFLARE_API_KEY
+                            description: Key in the secret for Global API Key (used
+                              when authType is globalAPIKey)
+                            type: string
+                          apiTokenKey:
+                            default: CLOUDFLARE_API_TOKEN
+                            description: Key in the secret for API Token (used when
+                              authType is apiToken)
+                            type: string
+                          emailKey:
+                            default: CLOUDFLARE_EMAIL
+                            description: Key in the secret for Email (used when authType
+                              is globalAPIKey)
+                            type: string
+                          name:
+                            description: Name of the secret
+                            type: string
+                          namespace:
+                            default: cloudflare-operator-system
+                            description: Namespace of the secret. Defaults to "cloudflare-operator-system"
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      enabled:
+                        default: false
+                        description: Enabled enables authenticated origin pulls (mTLS)
+                        type: boolean
+                    type: object
+                  automaticHttpsRewrites:
+                    default: true
+                    description: AutomaticHTTPSRewrites rewrites HTTP links to HTTPS
+                      in HTML content
+                    type: boolean
+                  minTLSVersion:
+                    default: "1.2"
+                    description: MinTLSVersion sets the minimum TLS version
+                    enum:
+                    - "1.0"
+                    - "1.1"
+                    - "1.2"
+                    - "1.3"
+                    type: string
+                  mode:
+                    default: full
+                    description: |-
+                      Mode sets the SSL/TLS encryption mode
+                      - off: No encryption (not recommended)
+                      - flexible: Encrypts traffic between browser and Cloudflare only
+                      - full: Encrypts end-to-end, using a self-signed cert on the origin
+                      - strict/full_strict: Encrypts end-to-end, requires valid origin cert
+                    enum:
+                    - "off"
+                    - flexible
+                    - full
+                    - strict
+                    - full_strict
+                    type: string
+                  opportunisticEncryption:
+                    default: true
+                    description: OpportunisticEncryption enables opportunistic encryption
+                    type: boolean
+                  tls13:
+                    default: "on"
+                    description: TLS13 enables TLS 1.3 support
+                    enum:
+                    - "on"
+                    - "off"
+                    type: string
+                type: object
+              zoneId:
+                description: |-
+                  ZoneID allows manual specification of the Cloudflare Zone ID.
+                  If provided, the controller will skip zone lookup and use this value directly.
+                  This is useful for advanced scenarios or when automatic lookup fails.
+                type: string
+            required:
+            - domain
+            type: object
+          status:
+            description: CloudflareDomainStatus defines the observed state of CloudflareDomain
+            properties:
+              accountId:
+                description: AccountID is the Cloudflare Account ID associated with
+                  this zone
+                type: string
+              conditions:
+                description: Conditions represent the latest available observations
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+              configSyncStatus:
+                description: ConfigSyncStatus represents the sync status of zone settings
+                properties:
+                  cache:
+                    description: Cache sync status
+                    enum:
+                    - Synced
+                    - Syncing
+                    - Error
+                    - Unknown
+                    type: string
+                  errorMessage:
+                    description: ErrorMessage contains error details if any sync failed
+                    type: string
+                  lastSyncTime:
+                    description: LastSyncTime is the last time any configuration was
+                      synced
+                    type: string
+                  performance:
+                    description: Performance sync status
+                    enum:
+                    - Synced
+                    - Syncing
+                    - Error
+                    - Unknown
+                    type: string
+                  security:
+                    description: Security sync status
+                    enum:
+                    - Synced
+                    - Syncing
+                    - Error
+                    - Unknown
+                    type: string
+                  ssl:
+                    description: SSL sync status
+                    enum:
+                    - Synced
+                    - Syncing
+                    - Error
+                    - Unknown
+                    type: string
+                type: object
+              lastVerifiedTime:
+                description: LastVerifiedTime is the last time the zone was verified
+                  with Cloudflare API
+                format: date-time
+                type: string
+              message:
+                description: Message provides additional information about the current
+                  state
+                type: string
+              nameServers:
+                description: NameServers are the Cloudflare name servers for this
+                  zone
+                items:
+                  type: string
+                type: array
+              observedGeneration:
+                description: ObservedGeneration is the most recent generation observed
+                format: int64
+                type: integer
+              state:
+                description: State represents the current state of the domain
+                enum:
+                - Pending
+                - Verifying
+                - Ready
+                - Error
+                type: string
+              zoneId:
+                description: ZoneID is the Cloudflare Zone ID for this domain
+                type: string
+              zoneName:
+                description: ZoneName is the zone name as returned by Cloudflare API
+                type: string
+              zoneStatus:
+                description: ZoneStatus is the status of the zone in Cloudflare (active,
+                  pending, etc.)
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

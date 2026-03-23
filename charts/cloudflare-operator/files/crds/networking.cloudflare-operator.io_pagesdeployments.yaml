@@ -1,0 +1,987 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: pagesdeployments.networking.cloudflare-operator.io
+spec:
+  group: networking.cloudflare-operator.io
+  names:
+    kind: PagesDeployment
+    listKind: PagesDeploymentList
+    plural: pagesdeployments
+    shortNames:
+    - cfpdeploy
+    - pagesdeployment
+    singular: pagesdeployment
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.projectName
+      name: Project
+      type: string
+    - jsonPath: .status.deploymentId
+      name: DeploymentID
+      type: string
+    - jsonPath: .status.environment
+      name: Environment
+      type: string
+    - jsonPath: .status.stage
+      name: Stage
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha2
+    schema:
+      openAPIV3Schema:
+        description: |-
+          PagesDeployment manages a deployment for a Cloudflare Pages project.
+          This resource allows you to trigger deployments, retry failed deployments,
+          or rollback to previous deployments.
+
+          For git-based projects, deployments are typically triggered automatically
+          by git pushes. Use this resource when you need to:
+          - Manually trigger a deployment
+          - Retry a failed deployment
+          - Rollback to a previous deployment
+          - Deploy static files via direct upload
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PagesDeploymentSpec defines the desired state of PagesDeployment
+            properties:
+              action:
+                allOf:
+                - enum:
+                  - create
+                  - retry
+                  - rollback
+                - enum:
+                  - create
+                  - retry
+                  - rollback
+                default: create
+                description: |-
+                  Action is the deployment action to perform.
+
+                  Deprecated: Use Environment and Source instead. Rollback should be done by
+                  creating a new deployment with the same source as the target.
+                type: string
+              branch:
+                description: |-
+                  Branch is the branch to deploy from (for git-based deployments).
+
+                  Deprecated: Use Source.Git.Branch instead.
+                type: string
+              cloudflare:
+                description: Cloudflare contains Cloudflare-specific configuration.
+                properties:
+                  CLOUDFLARE_API_KEY:
+                    description: |-
+                      Key in the secret to use for Cloudflare API Key.
+                      If not specified, defaults to "CLOUDFLARE_API_KEY" at runtime.
+                      Needs Email also to be provided.
+                      For Delete operations for new tunnels only, or as an alternate to API Token.
+                    type: string
+                  CLOUDFLARE_API_TOKEN:
+                    description: |-
+                      Key in the secret to use for Cloudflare API token.
+                      If not specified, defaults to "CLOUDFLARE_API_TOKEN" at runtime.
+                    type: string
+                  CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:
+                    description: |-
+                      Key in the secret to use as credentials.json for an existing tunnel.
+                      If not specified, defaults to "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE" at runtime.
+                    type: string
+                  CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET:
+                    description: |-
+                      Key in the secret to use as tunnel secret for an existing tunnel.
+                      If not specified, defaults to "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET" at runtime.
+                    type: string
+                  accountId:
+                    description: Account ID in Cloudflare. AccountId and AccountName
+                      cannot be both empty. If both are provided, Account ID is used
+                      if valid, else falls back to Account Name.
+                    type: string
+                  accountName:
+                    description: Account Name in Cloudflare. AccountName and AccountId
+                      cannot be both empty. If both are provided, Account ID is used
+                      if valid, else falls back to Account Name.
+                    type: string
+                  credentialsRef:
+                    description: |-
+                      CredentialsRef references a CloudflareCredentials resource for API authentication.
+                      When specified, this takes precedence over inline credential fields.
+                      This is the recommended way to configure credentials.
+                    properties:
+                      name:
+                        description: Name of the CloudflareCredentials resource to
+                          use
+                        type: string
+                    required:
+                    - name
+                    type: object
+                  domain:
+                    description: |-
+                      Cloudflare Domain to which this tunnel belongs to.
+                      Required if not using credentialsRef with a defaultDomain.
+                    type: string
+                  email:
+                    description: Email to use along with API Key for Delete operations
+                      for new tunnels only, or as an alternate to API Token
+                    type: string
+                  secret:
+                    description: Secret containing Cloudflare API key/token (legacy,
+                      use credentialsRef instead)
+                    type: string
+                  zoneId:
+                    description: |-
+                      ZoneId is the Cloudflare Zone ID for DNS operations.
+                      If not specified, it will be looked up via CloudflareDomain or the domain field.
+                      Specifying this directly is useful for multi-zone scenarios.
+                    type: string
+                type: object
+              directUpload:
+                description: |-
+                  DirectUpload configures direct upload deployment.
+                  Deprecated: Use Source.DirectUpload instead.
+                properties:
+                  archive:
+                    description: |-
+                      Archive configuration for compressed files.
+                      Specifies how to extract the downloaded archive.
+                    properties:
+                      stripComponents:
+                        default: 0
+                        description: |-
+                          StripComponents removes leading path components when extracting.
+                          Similar to tar --strip-components.
+                          Useful when archive contains a top-level directory.
+                        maximum: 10
+                        minimum: 0
+                        type: integer
+                      subPath:
+                        description: |-
+                          SubPath extracts only a specific subdirectory from the archive.
+                          Files outside this path are ignored.
+                        type: string
+                      type:
+                        default: tar.gz
+                        description: |-
+                          Type is the archive type.
+                          - tar.gz: gzip compressed tar archive (default)
+                          - tar: uncompressed tar archive
+                          - zip: ZIP archive
+                          - none: no extraction, treat as single file
+                        enum:
+                        - tar.gz
+                        - tar
+                        - zip
+                        - none
+                        type: string
+                    type: object
+                  checksum:
+                    description: |-
+                      Checksum for file integrity verification.
+                      When specified, the downloaded file will be verified before extraction.
+                    properties:
+                      algorithm:
+                        default: sha256
+                        description: Algorithm is the checksum algorithm.
+                        enum:
+                        - sha256
+                        - sha512
+                        - md5
+                        type: string
+                      value:
+                        description: Value is the expected checksum value in hexadecimal
+                          format.
+                        pattern: ^[a-fA-F0-9]+$
+                        type: string
+                    required:
+                    - value
+                    type: object
+                  manifest:
+                    additionalProperties:
+                      type: string
+                    description: |-
+                      Manifest is an inline file manifest.
+                      Keys are file paths, values are file contents (base64 encoded for binary files).
+                      Deprecated: Use Source instead for better flexibility.
+                    type: object
+                  manifestConfigMapRef:
+                    description: |-
+                      ManifestConfigMapRef references a ConfigMap containing the file manifest.
+                      The ConfigMap should have keys as file paths and values as file contents.
+                      Deprecated: Use Source instead for better flexibility.
+                    type: string
+                  source:
+                    description: |-
+                      Source defines where to fetch the deployment files from.
+                      Supports HTTP/HTTPS URLs, S3-compatible storage, and OCI registries.
+                    properties:
+                      http:
+                        description: |-
+                          HTTP source - fetch from HTTP/HTTPS URL.
+                          Supports presigned URLs for private storage (e.g., S3 presigned URLs, GCS signed URLs).
+                        properties:
+                          headers:
+                            additionalProperties:
+                              type: string
+                            description: |-
+                              Headers to include in the HTTP request.
+                              Useful for authentication tokens or custom headers.
+                            type: object
+                          headersSecretRef:
+                            description: |-
+                              HeadersSecretRef references a Secret containing HTTP headers.
+                              Keys in the secret become header names, values become header values.
+                              This is useful for sensitive authentication headers.
+                            properties:
+                              name:
+                                default: ""
+                                description: |-
+                                  Name of the referent.
+                                  This field is effectively required, but due to backwards compatibility is
+                                  allowed to be empty. Instances of this type with an empty value here are
+                                  almost certainly wrong.
+                                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                type: string
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          insecureSkipVerify:
+                            default: false
+                            description: |-
+                              InsecureSkipVerify skips TLS certificate verification.
+                              Use with caution, only for testing or internal URLs.
+                            type: boolean
+                          timeout:
+                            default: 5m
+                            description: Timeout for the HTTP request.
+                            type: string
+                          url:
+                            description: |-
+                              URL is the HTTP/HTTPS URL to fetch files from.
+                              Supports presigned URLs for private storage.
+                            pattern: ^https?://
+                            type: string
+                        required:
+                        - url
+                        type: object
+                      oci:
+                        description: |-
+                          OCI source - fetch from OCI registry.
+                          Useful for storing build artifacts in container registries.
+                        properties:
+                          credentialsSecretRef:
+                            description: |-
+                              CredentialsSecretRef references a Secret containing registry credentials.
+                              Supports two formats:
+                              - Docker config: .dockerconfigjson key (same as imagePullSecrets)
+                              - Basic auth: username and password keys
+                            properties:
+                              name:
+                                default: ""
+                                description: |-
+                                  Name of the referent.
+                                  This field is effectively required, but due to backwards compatibility is
+                                  allowed to be empty. Instances of this type with an empty value here are
+                                  almost certainly wrong.
+                                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                type: string
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          image:
+                            description: |-
+                              Image is the OCI image reference.
+                              Format: registry.example.com/repo:tag or registry.example.com/repo@sha256:digest
+                            type: string
+                          insecureRegistry:
+                            default: false
+                            description: |-
+                              InsecureRegistry allows connecting to registries without TLS.
+                              Use with caution, only for testing or internal registries.
+                            type: boolean
+                        required:
+                        - image
+                        type: object
+                      s3:
+                        description: |-
+                          S3 source - fetch from S3-compatible storage.
+                          Supports AWS S3, MinIO, Cloudflare R2, and other S3-compatible services.
+                        properties:
+                          bucket:
+                            description: Bucket is the S3 bucket name.
+                            type: string
+                          credentialsSecretRef:
+                            description: |-
+                              CredentialsSecretRef references a Secret containing AWS credentials.
+                              Expected keys: accessKeyId, secretAccessKey, sessionToken (optional)
+                            properties:
+                              name:
+                                default: ""
+                                description: |-
+                                  Name of the referent.
+                                  This field is effectively required, but due to backwards compatibility is
+                                  allowed to be empty. Instances of this type with an empty value here are
+                                  almost certainly wrong.
+                                  More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                type: string
+                            type: object
+                            x-kubernetes-map-type: atomic
+                          endpoint:
+                            description: |-
+                              Endpoint is the S3 endpoint URL.
+                              Required for S3-compatible services like MinIO, Cloudflare R2.
+                              Examples: "https://s3.us-west-2.amazonaws.com", "https://xxx.r2.cloudflarestorage.com"
+                            type: string
+                          key:
+                            description: Key is the object key (path) in the bucket.
+                            type: string
+                          region:
+                            description: |-
+                              Region is the S3 region.
+                              Required for AWS S3, optional for other S3-compatible services.
+                            type: string
+                          usePathStyle:
+                            default: false
+                            description: |-
+                              UsePathStyle forces path-style addressing instead of virtual hosted-style.
+                              Required for some S3-compatible services like MinIO.
+                            type: boolean
+                        required:
+                        - bucket
+                        - key
+                        type: object
+                    type: object
+                type: object
+              environment:
+                allOf:
+                - enum:
+                  - production
+                  - preview
+                - enum:
+                  - production
+                  - preview
+                description: |-
+                  Environment specifies the deployment environment.
+                  - production: The production deployment (only one per project)
+                  - preview: Preview deployments (multiple allowed)
+                type: string
+              projectRef:
+                description: |-
+                  ProjectRef references the PagesProject.
+                  Either Name or CloudflareID/CloudflareName must be specified.
+                properties:
+                  cloudflareId:
+                    description: |-
+                      CloudflareID is the Cloudflare project name (same as ID for Pages).
+                      Use this to reference a project that is not managed by the operator.
+                    type: string
+                  cloudflareName:
+                    description: |-
+                      CloudflareName is an alias for CloudflareID (same as ID for Pages).
+                      Provided for clarity and consistency.
+                    type: string
+                  name:
+                    description: |-
+                      Name is the K8s PagesProject resource name.
+                      The controller will look up the Cloudflare project name from this resource.
+                    type: string
+                type: object
+              purgeBuildCache:
+                default: false
+                description: PurgeBuildCache purges the build cache before deployment.
+                type: boolean
+              rollback:
+                description: |-
+                  Rollback configuration for intelligent deployment rollback.
+                  Deprecated: Create a new PagesDeployment with the desired source instead.
+                properties:
+                  deploymentId:
+                    description: DeploymentID is the exact Cloudflare deployment ID
+                      (for ExactDeploymentID strategy).
+                    type: string
+                  strategy:
+                    default: LastSuccessful
+                    description: |-
+                      Strategy defines how to select the rollback target.
+                      - LastSuccessful: Roll back to the last successful deployment
+                      - ByVersion: Roll back to a specific version number from history
+                      - ExactDeploymentID: Roll back to a specific Cloudflare deployment ID
+                    enum:
+                    - LastSuccessful
+                    - ByVersion
+                    - ExactDeploymentID
+                    type: string
+                  version:
+                    description: |-
+                      Version is the target version number (for ByVersion strategy).
+                      This is the sequential version number tracked in deployment history.
+                    minimum: 1
+                    type: integer
+                type: object
+              source:
+                description: |-
+                  Source defines the deployment source configuration.
+                  When specified, uses the new declarative deployment model.
+                properties:
+                  directUpload:
+                    description: |-
+                      DirectUpload contains direct upload deployment configuration.
+                      Required when type is "directUpload".
+                    properties:
+                      archive:
+                        description: |-
+                          Archive configuration for compressed files.
+                          Specifies how to extract the downloaded archive.
+                        properties:
+                          stripComponents:
+                            default: 0
+                            description: |-
+                              StripComponents removes leading path components when extracting.
+                              Similar to tar --strip-components.
+                              Useful when archive contains a top-level directory.
+                            maximum: 10
+                            minimum: 0
+                            type: integer
+                          subPath:
+                            description: |-
+                              SubPath extracts only a specific subdirectory from the archive.
+                              Files outside this path are ignored.
+                            type: string
+                          type:
+                            default: tar.gz
+                            description: |-
+                              Type is the archive type.
+                              - tar.gz: gzip compressed tar archive (default)
+                              - tar: uncompressed tar archive
+                              - zip: ZIP archive
+                              - none: no extraction, treat as single file
+                            enum:
+                            - tar.gz
+                            - tar
+                            - zip
+                            - none
+                            type: string
+                        type: object
+                      branch:
+                        description: |-
+                          Branch specifies the branch name for this deployment.
+                          For preview deployments, this creates a branch alias URL: <branch>.<project>.pages.dev
+                          If not specified:
+                          - For environment=preview: defaults to "preview"
+                          - For environment=production: empty (uses project's production branch)
+                          Common values: "staging", "feature-x", "pr-123"
+                        type: string
+                      checksum:
+                        description: |-
+                          Checksum for file integrity verification.
+                          When specified, the downloaded file will be verified before extraction.
+                        properties:
+                          algorithm:
+                            default: sha256
+                            description: Algorithm is the checksum algorithm.
+                            enum:
+                            - sha256
+                            - sha512
+                            - md5
+                            type: string
+                          value:
+                            description: Value is the expected checksum value in hexadecimal
+                              format.
+                            pattern: ^[a-fA-F0-9]+$
+                            type: string
+                        required:
+                        - value
+                        type: object
+                      deploymentMetadata:
+                        description: |-
+                          DeploymentMetadata contains commit information for this deployment.
+                          These values are passed to Cloudflare API as deployment trigger metadata.
+                        properties:
+                          branch:
+                            description: |-
+                              Branch is the branch name for this deployment.
+                              Controls preview vs production: matches production_branch → production, otherwise → preview.
+                            type: string
+                          commitDirty:
+                            description: CommitDirty indicates if the repository has
+                              uncommitted changes.
+                            type: boolean
+                          commitHash:
+                            description: |-
+                              CommitHash is the commit identifier (e.g., "a1b2c3d4e5f6" or full SHA).
+                              For Direct Upload, this is metadata only (not used for actual git checkout).
+                            pattern: ^[a-f0-9]{7,40}$
+                            type: string
+                          commitMessage:
+                            description: CommitMessage is a description of this deployment.
+                            maxLength: 1000
+                            type: string
+                        type: object
+                      source:
+                        description: |-
+                          Source defines where to fetch the deployment files from.
+                          Supports HTTP/HTTPS URLs, S3-compatible storage, and OCI registries.
+                        properties:
+                          http:
+                            description: |-
+                              HTTP source - fetch from HTTP/HTTPS URL.
+                              Supports presigned URLs for private storage (e.g., S3 presigned URLs, GCS signed URLs).
+                            properties:
+                              headers:
+                                additionalProperties:
+                                  type: string
+                                description: |-
+                                  Headers to include in the HTTP request.
+                                  Useful for authentication tokens or custom headers.
+                                type: object
+                              headersSecretRef:
+                                description: |-
+                                  HeadersSecretRef references a Secret containing HTTP headers.
+                                  Keys in the secret become header names, values become header values.
+                                  This is useful for sensitive authentication headers.
+                                properties:
+                                  name:
+                                    default: ""
+                                    description: |-
+                                      Name of the referent.
+                                      This field is effectively required, but due to backwards compatibility is
+                                      allowed to be empty. Instances of this type with an empty value here are
+                                      almost certainly wrong.
+                                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    type: string
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              insecureSkipVerify:
+                                default: false
+                                description: |-
+                                  InsecureSkipVerify skips TLS certificate verification.
+                                  Use with caution, only for testing or internal URLs.
+                                type: boolean
+                              timeout:
+                                default: 5m
+                                description: Timeout for the HTTP request.
+                                type: string
+                              url:
+                                description: |-
+                                  URL is the HTTP/HTTPS URL to fetch files from.
+                                  Supports presigned URLs for private storage.
+                                pattern: ^https?://
+                                type: string
+                            required:
+                            - url
+                            type: object
+                          oci:
+                            description: |-
+                              OCI source - fetch from OCI registry.
+                              Useful for storing build artifacts in container registries.
+                            properties:
+                              credentialsSecretRef:
+                                description: |-
+                                  CredentialsSecretRef references a Secret containing registry credentials.
+                                  Supports two formats:
+                                  - Docker config: .dockerconfigjson key (same as imagePullSecrets)
+                                  - Basic auth: username and password keys
+                                properties:
+                                  name:
+                                    default: ""
+                                    description: |-
+                                      Name of the referent.
+                                      This field is effectively required, but due to backwards compatibility is
+                                      allowed to be empty. Instances of this type with an empty value here are
+                                      almost certainly wrong.
+                                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    type: string
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              image:
+                                description: |-
+                                  Image is the OCI image reference.
+                                  Format: registry.example.com/repo:tag or registry.example.com/repo@sha256:digest
+                                type: string
+                              insecureRegistry:
+                                default: false
+                                description: |-
+                                  InsecureRegistry allows connecting to registries without TLS.
+                                  Use with caution, only for testing or internal registries.
+                                type: boolean
+                            required:
+                            - image
+                            type: object
+                          s3:
+                            description: |-
+                              S3 source - fetch from S3-compatible storage.
+                              Supports AWS S3, MinIO, Cloudflare R2, and other S3-compatible services.
+                            properties:
+                              bucket:
+                                description: Bucket is the S3 bucket name.
+                                type: string
+                              credentialsSecretRef:
+                                description: |-
+                                  CredentialsSecretRef references a Secret containing AWS credentials.
+                                  Expected keys: accessKeyId, secretAccessKey, sessionToken (optional)
+                                properties:
+                                  name:
+                                    default: ""
+                                    description: |-
+                                      Name of the referent.
+                                      This field is effectively required, but due to backwards compatibility is
+                                      allowed to be empty. Instances of this type with an empty value here are
+                                      almost certainly wrong.
+                                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                    type: string
+                                type: object
+                                x-kubernetes-map-type: atomic
+                              endpoint:
+                                description: |-
+                                  Endpoint is the S3 endpoint URL.
+                                  Required for S3-compatible services like MinIO, Cloudflare R2.
+                                  Examples: "https://s3.us-west-2.amazonaws.com", "https://xxx.r2.cloudflarestorage.com"
+                                type: string
+                              key:
+                                description: Key is the object key (path) in the bucket.
+                                type: string
+                              region:
+                                description: |-
+                                  Region is the S3 region.
+                                  Required for AWS S3, optional for other S3-compatible services.
+                                type: string
+                              usePathStyle:
+                                default: false
+                                description: |-
+                                  UsePathStyle forces path-style addressing instead of virtual hosted-style.
+                                  Required for some S3-compatible services like MinIO.
+                                type: boolean
+                            required:
+                            - bucket
+                            - key
+                            type: object
+                        type: object
+                    required:
+                    - source
+                    type: object
+                  git:
+                    description: |-
+                      Git contains git-based deployment configuration.
+                      Required when type is "git".
+                    properties:
+                      branch:
+                        description: |-
+                          Branch is the branch to deploy from.
+                          If not specified, uses the project's production branch.
+                        type: string
+                      commitMessage:
+                        description: |-
+                          CommitMessage is a description for this deployment.
+                          This is passed to Cloudflare as deployment metadata.
+                        maxLength: 1000
+                        type: string
+                      commitSha:
+                        description: |-
+                          CommitSha is the specific commit SHA to deploy.
+                          If specified, overrides the branch's HEAD.
+                        pattern: ^[a-f0-9]{7,40}$
+                        type: string
+                    type: object
+                  type:
+                    description: Type is the source type (git or directUpload).
+                    enum:
+                    - git
+                    - directUpload
+                    type: string
+                required:
+                - type
+                type: object
+              targetDeploymentId:
+                description: |-
+                  TargetDeploymentID is the deployment ID to retry or rollback to.
+                  Deprecated: Use Rollback.DeploymentID or create a new deployment instead.
+                type: string
+              versionName:
+                description: |-
+                  VersionName is a human-readable version identifier for this deployment.
+                  Used by GitOps workflows to reference deployments by version.
+                  When set, this deployment can be referenced by PagesProject or PagesPromotion via versionName.
+                  Example values: "v1.2.3", "sha-abc123", "feature-x-v1"
+                maxLength: 63
+                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                type: string
+            required:
+            - cloudflare
+            - projectRef
+            type: object
+          status:
+            description: PagesDeploymentStatus defines the observed state of PagesDeployment
+            properties:
+              accountId:
+                description: AccountID is the Cloudflare account ID.
+                type: string
+              branchUrl:
+                description: |-
+                  BranchURL is the branch-based URL for this deployment (if applicable).
+                  Format: <branch>.<project>.pages.dev
+                  This URL points to the latest deployment for this branch.
+                type: string
+              buildConfig:
+                description: BuildConfig shows the build configuration used.
+                properties:
+                  buildCommand:
+                    description: BuildCommand is the build command used.
+                    type: string
+                  destinationDir:
+                    description: DestinationDir is the build output directory.
+                    type: string
+                  rootDir:
+                    description: RootDir is the root directory for the build.
+                    type: string
+                  webAnalyticsTag:
+                    description: WebAnalyticsTag is the Web Analytics tag used.
+                    type: string
+                type: object
+              conditions:
+                description: Conditions represent the latest available observations.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              deploymentId:
+                description: DeploymentID is the Cloudflare deployment ID.
+                type: string
+              deploymentTrigger:
+                description: DeploymentTrigger contains the deployment trigger information
+                  from Cloudflare.
+                properties:
+                  branch:
+                    description: Branch is the branch name for this deployment.
+                    type: string
+                  commitDirty:
+                    description: CommitDirty indicates if the repository had uncommitted
+                      changes.
+                    type: boolean
+                  commitHash:
+                    description: CommitHash is the commit identifier.
+                    type: string
+                  commitMessage:
+                    description: CommitMessage is the commit or deployment message.
+                    type: string
+                  type:
+                    description: Type is the deployment trigger type (e.g., "ad_hoc"
+                      or "push").
+                    type: string
+                type: object
+              environment:
+                description: Environment is the deployment environment (production
+                  or preview).
+                type: string
+              finishedAt:
+                description: FinishedAt is when the deployment finished.
+                format: date-time
+                type: string
+              hashUrl:
+                description: |-
+                  HashURL is the unique hash-based URL for this deployment.
+                  Format: <hash>.<project>.pages.dev
+                  This URL is immutable and always points to this specific deployment.
+                type: string
+              isCurrentProduction:
+                description: |-
+                  IsCurrentProduction indicates if this is the current production deployment.
+                  Only relevant when Environment is "production".
+                type: boolean
+              message:
+                description: Message provides additional information about the current
+                  state.
+                type: string
+              observedGeneration:
+                description: ObservedGeneration is the last observed generation.
+                format: int64
+                type: integer
+              productionBranch:
+                description: ProductionBranch is the production branch used.
+                type: string
+              projectName:
+                description: ProjectName is the Cloudflare project name.
+                type: string
+              source:
+                description: Source is the deployment source info.
+                properties:
+                  config:
+                    description: Config contains source-specific configuration.
+                    properties:
+                      deploymentsEnabled:
+                        description: DeploymentsEnabled indicates if deployments are
+                          enabled.
+                        type: boolean
+                      owner:
+                        description: Owner is the repository owner.
+                        type: string
+                      prCommentEnabled:
+                        description: PRCommentEnabled indicates if PR comments are
+                          enabled.
+                        type: boolean
+                      previewDeploymentsEnabled:
+                        description: PreviewDeploymentsEnabled indicates if preview
+                          deployments are enabled.
+                        type: boolean
+                      productionBranch:
+                        description: ProductionBranch is the production branch.
+                        type: string
+                      productionDeploymentsEnabled:
+                        description: ProductionDeploymentsEnabled indicates if production
+                          deployments are enabled.
+                        type: boolean
+                      repoName:
+                        description: RepoName is the repository name.
+                        type: string
+                    type: object
+                  type:
+                    description: Type is the source type (github, gitlab, direct_upload).
+                    type: string
+                type: object
+              sourceDescription:
+                description: |-
+                  SourceDescription is a human-readable description of the deployment source.
+                  Examples: "git:main", "git:feature-branch@abc123", "directUpload:http"
+                type: string
+              stage:
+                description: Stage is the current deployment stage.
+                type: string
+              stageHistory:
+                description: StageHistory is the history of deployment stages.
+                items:
+                  description: PagesStageHistory represents a stage in the deployment
+                    history.
+                  properties:
+                    endedOn:
+                      description: EndedOn is when this stage ended.
+                      type: string
+                    name:
+                      description: Name is the stage name (queued, initialize, clone_repo,
+                        build, deploy).
+                      type: string
+                    startedOn:
+                      description: StartedOn is when this stage started.
+                      type: string
+                    status:
+                      description: Status is the stage status (success, failure, active,
+                        idle, skipped).
+                      type: string
+                  type: object
+                type: array
+              startedAt:
+                description: StartedAt is when the deployment started.
+                format: date-time
+                type: string
+              state:
+                description: State is the current state of the deployment.
+                enum:
+                - Pending
+                - Queued
+                - Building
+                - Deploying
+                - Succeeded
+                - Failed
+                - Cancelled
+                - Retrying
+                - RollingBack
+                type: string
+              url:
+                description: |-
+                  URL is the primary deployment URL.
+                  For production: <project>.pages.dev
+                  For preview: <hash>.<project>.pages.dev
+                type: string
+              version:
+                description: |-
+                  Version is the sequential version number within the project.
+                  Increments with each new deployment.
+                type: integer
+              versionName:
+                description: |-
+                  VersionName is the human-readable version identifier.
+                  For managed deployments: the version name from PagesProject.spec.versionManagement (e.g., "sha-abc123")
+                  For direct deployments: extracted from the deployment name or source key.
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
