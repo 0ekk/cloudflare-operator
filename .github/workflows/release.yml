@@ -224,6 +224,30 @@ jobs:
             dist/cloudflare-operator*.sig \
             dist/cloudflare-operator*.pem
 
+      - name: Configure Git for chart publishing
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Sync chart version from release tag
+        run: |
+          CHART_VERSION="${{ steps.version.outputs.VERSION }}"
+          sed -i -E "s/^version: .*/version: ${CHART_VERSION}/" charts/cloudflare-operator/Chart.yaml
+          sed -i -E "s/^appVersion: .*/appVersion: \"v${CHART_VERSION}\"/" charts/cloudflare-operator/Chart.yaml
+          echo "Updated charts/cloudflare-operator/Chart.yaml:"
+          cat charts/cloudflare-operator/Chart.yaml
+
+      - name: Lint Helm chart
+        run: helm lint charts/cloudflare-operator
+
+      - name: Publish Helm chart to GitHub Pages
+        uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
+        with:
+          charts_dir: charts
+          skip_existing: true
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Attest release artifacts
         uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
         with:

@@ -1,0 +1,11 @@
+{{- $manifest := .Files.Get "files/manifests/default-no-webhook.yaml" -}}
+{{- $manifest = replace "namespace: cloudflare-operator-system" (printf "namespace: %s" .Release.Namespace) $manifest -}}
+{{- $manifest = regexReplaceAll "(?m)^\\s*image: .*$" $manifest (printf "        image: %s\n        imagePullPolicy: %s" (include "cloudflare-operator.image" .) .Values.image.pullPolicy) -}}
+{{- $manifest = replace "replicas: 1" (printf "replicas: %v" .Values.operator.replicas) $manifest -}}
+{{- if .Values.webhook.enabled -}}
+{{- $manifest = replace "- --zap-stacktrace-level=error\n        command:" "- --zap-stacktrace-level=error\n        - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs\n        command:" $manifest -}}
+{{- $manifest = replace "name: manager\n        readinessProbe:" "name: manager\n        ports:\n        - containerPort: 9443\n          name: webhook-server\n          protocol: TCP\n        readinessProbe:" $manifest -}}
+{{- $manifest = replace "readOnlyRootFilesystem: true\n      securityContext:" "readOnlyRootFilesystem: true\n        volumeMounts:\n        - mountPath: /tmp/k8s-webhook-server/serving-certs\n          name: webhook-certs\n          readOnly: true\n      securityContext:" $manifest -}}
+{{- $manifest = replace "terminationGracePeriodSeconds: 10" "terminationGracePeriodSeconds: 10\n      volumes:\n      - name: webhook-certs\n        secret:\n          secretName: webhook-server-cert" $manifest -}}
+{{- end -}}
+{{- $manifest }}

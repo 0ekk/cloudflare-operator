@@ -1,0 +1,6 @@
+Cloudflare Operator has been installed.
+
+Check pods:
+  kubectl -n {{ .Release.Namespace }} get pods -l control-plane=controller-manager
+
+If you disabled CRD installation, install CRDs first or reconciler resources will fail.

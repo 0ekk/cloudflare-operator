@@ -1,0 +1,46 @@
+{{- if and .Values.webhook.enabled .Values.certManager.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cloudflare-operator
+  name: {{ include "cloudflare-operator.fullname" . }}-metrics-certs
+  namespace: {{ .Release.Namespace }}
+spec:
+  dnsNames:
+    - {{ include "cloudflare-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc
+    - {{ include "cloudflare-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: {{ include "cloudflare-operator.fullname" . }}-selfsigned-issuer
+  secretName: metrics-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cloudflare-operator
+  name: {{ include "cloudflare-operator.fullname" . }}-serving-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  dnsNames:
+    - {{ include "cloudflare-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc
+    - {{ include "cloudflare-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: {{ include "cloudflare-operator.fullname" . }}-selfsigned-issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: cloudflare-operator
+  name: {{ include "cloudflare-operator.fullname" . }}-selfsigned-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+{{- end }}

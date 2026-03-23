@@ -1,0 +1,16 @@
+installCRDs: true
+
+image:
+  repository: ghcr.io/0ekk/cloudflare-operator
+  # Default is computed from Chart.Version when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+operator:
+  replicas: 1
+
+webhook:
+  enabled: false
+
+certManager:
+  enabled: false
