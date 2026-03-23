@@ -353,8 +353,16 @@ func NewConfigMap(namespace, tunnelID string, owner metav1.Object, ownerGVK meta
 		Data: map[string]string{},
 	}
 
-	// Set owner reference if provided
+	// Set owner reference if provided.
+	// Kubernetes does not allow cross-namespace owner references for namespaced owners.
+	// If the owner is namespaced and differs from ConfigMap namespace, skip ownerRef to
+	// avoid garbage collection deleting the ConfigMap as an invalid/dangling dependent.
 	if owner != nil {
+		ownerNamespace := owner.GetNamespace()
+		if ownerNamespace != "" && ownerNamespace != namespace {
+			return cm
+		}
+
 		// Build API version string from group and version
 		apiVersion := ownerGVK.Version
 		if ownerGVK.Group != "" {
