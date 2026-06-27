@@ -208,13 +208,24 @@ lint-fix: golangci-lint
 
 HELM ?= helm
 HELM_CHART_DIR ?= charts/cloudflare-operator
+HELM_CRD_SOURCE_DIR ?= config/crd/bases
+HELM_CHART_CRD_DIR ?= $(HELM_CHART_DIR)/files/crds
+
+.PHONY: helm-sync-crds
+helm-sync-crds: manifests ## Sync generated CRDs into the Helm chart.
+	mkdir -p $(HELM_CHART_CRD_DIR)
+	cp $(HELM_CRD_SOURCE_DIR)/*.yaml $(HELM_CHART_CRD_DIR)/
+
+.PHONY: helm-check-crds
+helm-check-crds: helm-sync-crds ## Verify Helm chart CRDs are in sync with generated CRDs.
+	git diff --exit-code -- $(HELM_CHART_CRD_DIR)
 
 .PHONY: helm-lint
-helm-lint: ## Lint Helm chart.
+helm-lint: helm-sync-crds ## Lint Helm chart.
 	$(HELM) lint $(HELM_CHART_DIR)
 
 .PHONY: helm-template
-helm-template: ## Render Helm chart templates.
+helm-template: helm-sync-crds ## Render Helm chart templates.
 	$(HELM) template cloudflare-operator $(HELM_CHART_DIR) --namespace cloudflare-operator-system > /tmp/cloudflare-operator-helm-rendered.yaml
 	@echo "Rendered output: /tmp/cloudflare-operator-helm-rendered.yaml"
 
