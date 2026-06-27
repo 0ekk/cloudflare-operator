@@ -57,10 +57,12 @@ var _ = Describe("Tunnel Webhook", func() {
 				NoTlsVerify:    true,
 				Protocol:       "auto",
 				FallbackTarget: "http_status:404",
-				Cloudflare: networkingv1alpha2.CloudflareDetails{
-					Domain:    "example.com",
-					Secret:    "cf-secret",
-					AccountId: "account-123",
+				Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+						Domain:    "example.com",
+						Secret:    "cf-secret",
+						AccountId: "account-123",
+					},
 				},
 				NewTunnel: &networkingv1alpha2.NewTunnel{
 					Name: "my-tunnel",

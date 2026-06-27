@@ -4,12 +4,16 @@
 package ingress
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	networkingv1alpha1 "github.com/0ekk/cloudflare-operator/api/v1alpha1"
 	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
@@ -94,6 +98,94 @@ func TestConvertPathType(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestBuildIngressRules_UsesMatchedDomainOrDefaultSuffix(t *testing.T) {
+	scheme := setupTestScheme(t)
+	ctx := context.Background()
+
+	ingressClassName := "cf-tunnel"
+	tunnel := &networkingv1alpha2.Tunnel{
+		ObjectMeta: metav1.ObjectMeta{Name: "k8s-tunnel", Namespace: "default"},
+		Spec: networkingv1alpha2.TunnelSpec{
+			Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+					Domain: "nixai.de",
+				},
+				Domains: []string{"linuxpods.com"},
+			},
+			FallbackTarget: "http_status:404",
+		},
+		Status: networkingv1alpha2.TunnelStatus{
+			TunnelId: "073ccf1c-238c-4ac8-9249-cc290b4aaade",
+			ZoneId:   "zone-nixai",
+			Domains: []networkingv1alpha2.TunnelDomainStatus{
+				{
+					Domain: "linuxpods.com",
+					ZoneId: "zone-linuxpods",
+					State:  networkingv1alpha2.TunnelDomainStateReady,
+				},
+			},
+		},
+	}
+	svc := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{Name: "code-server", Namespace: "default"},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{{Port: 8080}},
+		},
+	}
+	ing := &networkingv1.Ingress{
+		ObjectMeta: metav1.ObjectMeta{Name: "code-server", Namespace: "default"},
+		Spec: networkingv1.IngressSpec{
+			IngressClassName: &ingressClassName,
+			Rules: []networkingv1.IngressRule{
+				{
+					Host: "code.linuxpods.com",
+					IngressRuleValue: networkingv1.IngressRuleValue{HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{{
+							Path: "/",
+							Backend: networkingv1.IngressBackend{Service: &networkingv1.IngressServiceBackend{
+								Name: "code-server",
+								Port: networkingv1.ServiceBackendPort{Number: 8080},
+							}},
+						}},
+					}},
+				},
+				{
+					Host: "code.evil.com",
+					IngressRuleValue: networkingv1.IngressRuleValue{HTTP: &networkingv1.HTTPIngressRuleValue{
+						Paths: []networkingv1.HTTPIngressPath{{
+							Path: "/",
+							Backend: networkingv1.IngressBackend{Service: &networkingv1.IngressServiceBackend{
+								Name: "code-server",
+								Port: networkingv1.ServiceBackendPort{Number: 8080},
+							}},
+						}},
+					}},
+				},
+			},
+		},
+	}
+	cfg := &networkingv1alpha2.TunnelIngressClassConfig{
+		ObjectMeta: metav1.ObjectMeta{Name: "cf-tunnel", Namespace: "default"},
+		Spec: networkingv1alpha2.TunnelIngressClassConfigSpec{
+			TunnelRef: networkingv1alpha2.TunnelReference{Kind: "Tunnel", Name: "k8s-tunnel"},
+		},
+	}
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(tunnel, svc).Build()
+	r := &Reconciler{Client: fakeClient, Scheme: scheme, OperatorNamespace: "cloudflare-system"}
+
+	rules := r.buildIngressRules(ctx, []*networkingv1.Ingress{ing}, nil, cfg)
+
+	require.Len(t, rules, 3)
+	rulesByHostname := map[string]string{}
+	for _, rule := range rules {
+		rulesByHostname[rule.Hostname] = rule.Service
+	}
+	assert.Equal(t, "http://code-server.default.svc:8080", rulesByHostname["code.linuxpods.com"])
+	assert.Equal(t, "http://code-server.default.svc:8080", rulesByHostname["code.evil.com.nixai.de"])
+	assert.Equal(t, "http_status:404", rulesByHostname[""])
 }
 
 func TestInferProtocolFromPort(t *testing.T) {

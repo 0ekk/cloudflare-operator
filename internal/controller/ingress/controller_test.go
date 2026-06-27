@@ -628,8 +628,10 @@ func TestTunnelWrapper(t *testing.T) {
 		},
 		Spec: networkingv1alpha2.TunnelSpec{
 			NoTlsVerify: true,
-			Cloudflare: networkingv1alpha2.CloudflareDetails{
-				Domain: "example.com",
+			Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+					Domain: "example.com",
+				},
 			},
 		},
 		Status: networkingv1alpha2.TunnelStatus{
@@ -660,8 +662,10 @@ func TestClusterTunnelWrapper(t *testing.T) {
 		},
 		Spec: networkingv1alpha2.TunnelSpec{
 			NoTlsVerify: false,
-			Cloudflare: networkingv1alpha2.CloudflareDetails{
-				Domain: "cluster.example.com",
+			Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+					Domain: "cluster.example.com",
+				},
 			},
 		},
 		Status: networkingv1alpha2.TunnelStatus{
@@ -798,9 +802,11 @@ func TestGetCredentialsReferenceFromTunnel(t *testing.T) {
 		tunnel := &TunnelWrapper{
 			Tunnel: &networkingv1alpha2.Tunnel{
 				Spec: networkingv1alpha2.TunnelSpec{
-					Cloudflare: networkingv1alpha2.CloudflareDetails{
-						CredentialsRef: &networkingv1alpha2.CloudflareCredentialsRef{
-							Name: "my-credentials",
+					Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+						CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+							CredentialsRef: &networkingv1alpha2.CloudflareCredentialsRef{
+								Name: "my-credentials",
+							},
 						},
 					},
 				},
@@ -815,7 +821,7 @@ func TestGetCredentialsReferenceFromTunnel(t *testing.T) {
 		tunnel := &TunnelWrapper{
 			Tunnel: &networkingv1alpha2.Tunnel{
 				Spec: networkingv1alpha2.TunnelSpec{
-					Cloudflare: networkingv1alpha2.CloudflareDetails{},
+					Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{},
 				},
 			},
 		}

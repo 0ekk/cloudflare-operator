@@ -73,16 +73,18 @@ func (src TunnelSpec) ConvertTo(dst *v1alpha2.TunnelSpec) error {
 		dst.ExistingTunnel = (*v1alpha2.ExistingTunnel)(&src.ExistingTunnel)
 	}
 	// Manually convert CloudflareDetails (v1alpha2 has additional CredentialsRef field)
-	dst.Cloudflare = v1alpha2.CloudflareDetails{
-		Domain:                              src.Cloudflare.Domain,
-		Secret:                              src.Cloudflare.Secret,
-		AccountName:                         src.Cloudflare.AccountName,
-		AccountId:                           src.Cloudflare.AccountId,
-		Email:                               src.Cloudflare.Email,
-		CLOUDFLARE_API_KEY:                  src.Cloudflare.CLOUDFLARE_API_KEY,
-		CLOUDFLARE_API_TOKEN:                src.Cloudflare.CLOUDFLARE_API_TOKEN,
-		CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   src.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_FILE,
-		CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: src.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET,
+	dst.Cloudflare = v1alpha2.TunnelCloudflareDetails{
+		CloudflareDetails: v1alpha2.CloudflareDetails{
+			Domain:                              src.Cloudflare.Domain,
+			Secret:                              src.Cloudflare.Secret,
+			AccountName:                         src.Cloudflare.AccountName,
+			AccountId:                           src.Cloudflare.AccountId,
+			Email:                               src.Cloudflare.Email,
+			CLOUDFLARE_API_KEY:                  src.Cloudflare.CLOUDFLARE_API_KEY,
+			CLOUDFLARE_API_TOKEN:                src.Cloudflare.CLOUDFLARE_API_TOKEN,
+			CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   src.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_FILE,
+			CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: src.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET,
+		},
 	}
 	dst.FallbackTarget = src.FallbackTarget
 	dst.Protocol = src.Protocol

@@ -55,10 +55,12 @@ var _ = Describe("ClusterTunnel Webhook", func() {
 				NoTlsVerify:    false,
 				Protocol:       "quic",
 				FallbackTarget: "http_status:503",
-				Cloudflare: networkingv1alpha2.CloudflareDetails{
-					Domain:    "cluster.example.com",
-					Secret:    "cluster-cf-secret",
-					AccountId: "cluster-account-123",
+				Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+						Domain:    "cluster.example.com",
+						Secret:    "cluster-cf-secret",
+						AccountId: "cluster-account-123",
+					},
 				},
 				NewTunnel: &networkingv1alpha2.NewTunnel{
 					Name: "cluster-tunnel",

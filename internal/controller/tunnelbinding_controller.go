@@ -89,7 +89,7 @@ func (r *TunnelBindingReconciler) initStruct(ctx context.Context, tunnelBinding 
 		r.fallbackTarget = clusterTunnel.Spec.FallbackTarget
 		r.tunnelID = clusterTunnel.Status.TunnelId
 		r.warpRouting = clusterTunnel.Spec.EnableWarpRouting
-		r.cloudflareConfig = clusterTunnel.Spec.Cloudflare
+		r.cloudflareConfig = clusterTunnel.Spec.Cloudflare.CloudflareDetails
 
 		// Resolve credentials to get accountID and domain
 		if err := r.resolveCredentials(clusterTunnel.Spec, clusterTunnel.Status, r.Namespace); err != nil {
@@ -109,7 +109,7 @@ func (r *TunnelBindingReconciler) initStruct(ctx context.Context, tunnelBinding 
 		r.fallbackTarget = tunnel.Spec.FallbackTarget
 		r.tunnelID = tunnel.Status.TunnelId
 		r.warpRouting = tunnel.Spec.EnableWarpRouting
-		r.cloudflareConfig = tunnel.Spec.Cloudflare
+		r.cloudflareConfig = tunnel.Spec.Cloudflare.CloudflareDetails
 
 		// Resolve credentials to get accountID and domain
 		if err := r.resolveCredentials(tunnel.Spec, tunnel.Status, r.binding.Namespace); err != nil {

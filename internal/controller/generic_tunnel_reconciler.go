@@ -801,7 +801,7 @@ func ensureSecretFinalizer(r GenericTunnelReconciler) error {
 }
 
 // applyTunnelStatusActive applies the "active" status fields to the tunnel object in memory
-func applyTunnelStatusActive(r GenericTunnelReconciler) {
+func applyTunnelStatusActive(r GenericTunnelReconciler, domainResolutions []tunnelDomainResolution) {
 	status := r.GetTunnel().GetStatus()
 	status.AccountId = r.GetCfAPI().ValidAccountId
 	status.TunnelId = r.GetCfAPI().ValidTunnelId
@@ -809,6 +809,7 @@ func applyTunnelStatusActive(r GenericTunnelReconciler) {
 	status.ZoneId = r.GetCfAPI().ValidZoneId
 	status.State = "active"
 	status.ObservedGeneration = r.GetTunnel().GetObject().GetGeneration()
+	applyTunnelDomainStatuses(&status, domainResolutions, r.GetTunnel().GetObject().GetGeneration())
 
 	// Set condition for ready state
 	meta.SetStatusCondition(&status.Conditions, metav1.Condition{
@@ -864,6 +865,7 @@ func updateTunnelStatus(r GenericTunnelReconciler) error {
 			// Don't return error - tunnel can still work without zone
 		}
 	}
+	domainResolutions := resolveTunnelDomains(r)
 
 	// P0 FIX: Sync warp-routing configuration to Cloudflare API
 	// This ensures that when enableWarpRouting is set on Tunnel/ClusterTunnel,
@@ -887,7 +889,7 @@ func updateTunnelStatus(r GenericTunnelReconciler) error {
 			}
 		}
 
-		applyTunnelStatusActive(r)
+		applyTunnelStatusActive(r, domainResolutions)
 
 		err := r.GetClient().Status().Update(r.GetContext(), r.GetTunnel().GetObject())
 		if err == nil {

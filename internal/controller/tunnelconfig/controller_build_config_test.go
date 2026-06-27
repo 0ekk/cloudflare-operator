@@ -23,4 +23,3 @@ func TestBuildCloudflareConfig_AlwaysIncludesCatchAllRule(t *testing.T) {
 		assert.Equal(t, "http_status:404", out.Ingress[0].Service)
 	}
 }
-

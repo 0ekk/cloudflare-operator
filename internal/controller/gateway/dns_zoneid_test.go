@@ -36,9 +36,11 @@ func TestReconcileDNS_DNSRecordModeUsesTunnelStatusZoneIDWhenSpecMissing(t *test
 	tunnel := &networkingv1alpha2.Tunnel{
 		ObjectMeta: metav1.ObjectMeta{Name: "k8s-tunnel", Namespace: "default"},
 		Spec: networkingv1alpha2.TunnelSpec{
-			Cloudflare: networkingv1alpha2.CloudflareDetails{
-				Domain:         "nixai.de",
-				CredentialsRef: &networkingv1alpha2.CloudflareCredentialsRef{Name: "default"},
+			Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+					Domain:         "nixai.de",
+					CredentialsRef: &networkingv1alpha2.CloudflareCredentialsRef{Name: "default"},
+				},
 			},
 		},
 		Status: networkingv1alpha2.TunnelStatus{

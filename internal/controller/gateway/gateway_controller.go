@@ -879,7 +879,7 @@ func (r *GatewayReconciler) reconcileDNS(
 	}
 
 	// Get zone info from tunnel status
-	cloudflare := tunnel.GetSpec().Cloudflare
+	cloudflare := tunnel.GetSpec().Cloudflare.CloudflareDetails
 	if cloudflare.ZoneId == "" {
 		cloudflare.ZoneId = tunnel.GetStatus().ZoneId
 	}

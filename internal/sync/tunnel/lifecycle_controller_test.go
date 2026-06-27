@@ -571,10 +571,12 @@ func TestLifecycleController_CreateAPIClient_FallbackToLegacyTunnelSecret(t *tes
 			Namespace: "default",
 		},
 		Spec: v1alpha2.TunnelSpec{
-			Cloudflare: v1alpha2.CloudflareDetails{
-				Secret:    "cloudflare-credentials",
-				AccountId: "acc-123",
-				Domain:    "example.com",
+			Cloudflare: v1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: v1alpha2.CloudflareDetails{
+					Secret:    "cloudflare-credentials",
+					AccountId: "acc-123",
+					Domain:    "example.com",
+				},
 			},
 		},
 	}

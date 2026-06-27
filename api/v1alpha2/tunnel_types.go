@@ -92,6 +92,17 @@ type CloudflareDetails struct {
 	CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET string `json:"CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET,omitempty"`
 }
 
+// TunnelCloudflareDetails extends CloudflareDetails with Tunnel-specific multi-domain routing settings.
+type TunnelCloudflareDetails struct {
+	CloudflareDetails `json:",inline"`
+
+	// +kubebuilder:validation:Optional
+	// Domains is the list of Cloudflare zones that this tunnel may publish hostnames for.
+	// Ingress hosts matching one of these domains are published as-is with that domain's zone.
+	// Other hosts are published under the default domain field.
+	Domains []string `json:"domains,omitempty"`
+}
+
 // TunnelSpec defines the desired state of Tunnel
 type TunnelSpec struct {
 	// Deployment patch for the cloudflared deployment.
@@ -122,7 +133,7 @@ type TunnelSpec struct {
 
 	// +kubebuilder:validation:Required
 	// Cloudflare Credentials
-	Cloudflare CloudflareDetails `json:"cloudflare,omitempty"`
+	Cloudflare TunnelCloudflareDetails `json:"cloudflare,omitempty"`
 
 	// +kubebuilder:validation:Optional
 	// Existing tunnel object.
@@ -142,6 +153,35 @@ type TunnelSpec struct {
 	EnableWarpRouting bool `json:"enableWarpRouting,omitempty"`
 }
 
+// TunnelDomainState represents the zone resolution state for a tunnel domain.
+// +kubebuilder:validation:Enum=Ready;Error
+type TunnelDomainState string
+
+const (
+	// TunnelDomainStateReady means the domain resolved to a Cloudflare zone.
+	TunnelDomainStateReady TunnelDomainState = "Ready"
+	// TunnelDomainStateError means the domain failed to resolve.
+	TunnelDomainStateError TunnelDomainState = "Error"
+)
+
+// TunnelDomainStatus records resolved zone information for a configured tunnel domain.
+type TunnelDomainStatus struct {
+	// Domain is the configured Cloudflare zone name.
+	Domain string `json:"domain"`
+
+	// ZoneId is the resolved Cloudflare zone ID.
+	ZoneId string `json:"zoneId,omitempty"`
+
+	// State is the current resolution state.
+	State TunnelDomainState `json:"state,omitempty"`
+
+	// Message describes the latest resolution result.
+	Message string `json:"message,omitempty"`
+
+	// LastResolvedTime is the last time the domain was resolved.
+	LastResolvedTime *metav1.Time `json:"lastResolvedTime,omitempty"`
+}
+
 // TunnelStatus defines the observed state of Tunnel
 type TunnelStatus struct {
 	// TunnelId is the Cloudflare tunnel ID
@@ -155,6 +195,10 @@ type TunnelStatus struct {
 
 	// ZoneId is the Cloudflare zone ID (optional, for DNS features)
 	ZoneId string `json:"zoneId"`
+
+	// Domains contains resolved zone information for spec.cloudflare.domains.
+	// +kubebuilder:validation:Optional
+	Domains []TunnelDomainStatus `json:"domains,omitempty"`
 
 	// State represents the current state of the tunnel
 	// +kubebuilder:validation:Enum=pending;creating;active;error;deleting

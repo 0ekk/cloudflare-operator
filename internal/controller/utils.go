@@ -84,7 +84,7 @@ func getAPIDetails(
 	loader := credentials.NewLoader(c, log)
 
 	// Load credentials using the unified loader
-	creds, err := loader.LoadFromCloudflareDetails(ctx, &tunnelSpec.Cloudflare, secretNamespace)
+	creds, err := loader.LoadFromCloudflareDetails(ctx, &tunnelSpec.Cloudflare.CloudflareDetails, secretNamespace)
 	if err != nil {
 		log.Error(err, "failed to load credentials")
 		return nil, nil, err

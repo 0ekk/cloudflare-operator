@@ -319,6 +319,14 @@ spec:
                       Cloudflare Domain to which this tunnel belongs to.
                       Required if not using credentialsRef with a defaultDomain.
                     type: string
+                  domains:
+                    description: |-
+                      Domains is the list of Cloudflare zones that this tunnel may publish hostnames for.
+                      Ingress hosts matching one of these domains are published as-is with that domain's zone.
+                      Other hosts are published under the default domain field.
+                    items:
+                      type: string
+                    type: array
                   email:
                     description: Email to use along with API Key for Delete operations
                       for new tunnels only, or as an alternate to API Token
@@ -472,6 +480,36 @@ spec:
                 description: ConfigVersion is the current tunnel configuration version
                   from Cloudflare
                 type: integer
+              domains:
+                description: Domains contains resolved zone information for spec.cloudflare.domains.
+                items:
+                  description: TunnelDomainStatus records resolved zone information
+                    for a configured tunnel domain.
+                  properties:
+                    domain:
+                      description: Domain is the configured Cloudflare zone name.
+                      type: string
+                    lastResolvedTime:
+                      description: LastResolvedTime is the last time the domain was
+                        resolved.
+                      format: date-time
+                      type: string
+                    message:
+                      description: Message describes the latest resolution result.
+                      type: string
+                    state:
+                      description: State is the current resolution state.
+                      enum:
+                      - Ready
+                      - Error
+                      type: string
+                    zoneId:
+                      description: ZoneId is the resolved Cloudflare zone ID.
+                      type: string
+                  required:
+                  - domain
+                  type: object
+                type: array
               observedGeneration:
                 description: ObservedGeneration is the generation observed by the
                   controller

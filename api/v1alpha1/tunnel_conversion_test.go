@@ -81,16 +81,18 @@ var sampleFilledNewTunnel = v1alpha2.Tunnel{
 		OriginCaPool:   sampleFilledOldTunnel.Spec.OriginCaPool,
 		Protocol:       sampleFilledOldTunnel.Spec.Protocol,
 		FallbackTarget: sampleFilledOldTunnel.Spec.FallbackTarget,
-		Cloudflare: v1alpha2.CloudflareDetails{
-			Domain:                              sampleFilledOldTunnel.Spec.Cloudflare.Domain,
-			Secret:                              sampleFilledOldTunnel.Spec.Cloudflare.Secret,
-			AccountName:                         sampleFilledOldTunnel.Spec.Cloudflare.AccountName,
-			AccountId:                           sampleFilledOldTunnel.Spec.Cloudflare.AccountId,
-			Email:                               sampleFilledOldTunnel.Spec.Cloudflare.Email,
-			CLOUDFLARE_API_KEY:                  sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_API_KEY,
-			CLOUDFLARE_API_TOKEN:                sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_API_TOKEN,
-			CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_FILE,
-			CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET,
+		Cloudflare: v1alpha2.TunnelCloudflareDetails{
+			CloudflareDetails: v1alpha2.CloudflareDetails{
+				Domain:                              sampleFilledOldTunnel.Spec.Cloudflare.Domain,
+				Secret:                              sampleFilledOldTunnel.Spec.Cloudflare.Secret,
+				AccountName:                         sampleFilledOldTunnel.Spec.Cloudflare.AccountName,
+				AccountId:                           sampleFilledOldTunnel.Spec.Cloudflare.AccountId,
+				Email:                               sampleFilledOldTunnel.Spec.Cloudflare.Email,
+				CLOUDFLARE_API_KEY:                  sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_API_KEY,
+				CLOUDFLARE_API_TOKEN:                sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_API_TOKEN,
+				CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_FILE,
+				CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: sampleFilledOldTunnel.Spec.Cloudflare.CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET,
+			},
 		},
 		NewTunnel: &v1alpha2.NewTunnel{
 			Name: sampleFilledOldTunnel.Spec.NewTunnel.Name,

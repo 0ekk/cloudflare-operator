@@ -98,9 +98,17 @@ func (r *Reconciler) convertIngressToRules(
 		if rule.HTTP == nil {
 			continue
 		}
+		domainMatch, ok := r.matchTunnelDomain(ctx, config, rule.Host)
+		if !ok {
+			if r.Recorder != nil {
+				r.Recorder.Eventf(ing, corev1.EventTypeWarning, "InvalidHost",
+					"Skipping hostname %s: host does not match any ready tunnel domain", rule.Host)
+			}
+			continue
+		}
 
 		for _, path := range rule.HTTP.Paths {
-			ingressRule := r.buildRuleFromIngressPath(ctx, ing, rule.Host, path, config, parser, tlsHosts)
+			ingressRule := r.buildRuleFromIngressPath(ctx, ing, domainMatch.Hostname, path, config, parser, tlsHosts)
 			rules = append(rules, ingressRule)
 		}
 	}

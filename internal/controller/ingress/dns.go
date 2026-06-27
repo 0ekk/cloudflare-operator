@@ -10,11 +10,13 @@ import (
 	"regexp"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	networkingv1alpha2 "github.com/0ekk/cloudflare-operator/api/v1alpha2"
@@ -112,7 +114,7 @@ func (r *Reconciler) reconcileDNSRecords(ctx context.Context, ingress *networkin
 	}
 
 	// Get Cloudflare details from tunnel
-	cloudflare := tunnel.GetSpec().Cloudflare
+	cloudflare := tunnel.GetSpec().Cloudflare.CloudflareDetails
 	if cloudflare.ZoneId == "" {
 		cloudflare.ZoneId = tunnel.GetStatus().ZoneId
 	}
@@ -122,10 +124,26 @@ func (r *Reconciler) reconcileDNSRecords(ctx context.Context, ingress *networkin
 
 	// Create DNSRecords with error aggregation
 	var errs []error
+	desiredHostnames := make(map[string]struct{}, len(hostnames))
 	for _, hostname := range hostnames {
+		domainMatch, ok := r.matchTunnelDomain(ctx, config, hostname)
+		if !ok {
+			logger.Info("Skipping DNSRecord for hostname without a ready tunnel domain", "hostname", hostname)
+			if r.Recorder != nil {
+				r.Recorder.Eventf(ingress, corev1.EventTypeWarning, "InvalidHost",
+					"Skipping hostname %s: host does not match any ready tunnel domain", hostname)
+			}
+			continue
+		}
+		publishedHostname := domainMatch.Hostname
+		desiredHostnames[publishedHostname] = struct{}{}
+		recordCloudflare := cloudflare
+		recordCloudflare.Domain = domainMatch.Domain
+		recordCloudflare.ZoneId = domainMatch.ZoneID
+
 		dnsRecord := &networkingv1alpha2.DNSRecord{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      r.sanitizeDNSRecordName(hostname, ingress),
+				Name:      r.sanitizeDNSRecordName(publishedHostname, ingress),
 				Namespace: ingress.Namespace,
 				Labels: map[string]string{
 					ManagedByAnnotation:           ManagedByValue,
@@ -133,12 +151,12 @@ func (r *Reconciler) reconcileDNSRecords(ctx context.Context, ingress *networkin
 				},
 			},
 			Spec: networkingv1alpha2.DNSRecordSpec{
-				Name:       hostname,
+				Name:       publishedHostname,
 				Type:       "CNAME",
 				Content:    fmt.Sprintf("%s.cfargotunnel.com", tunnelID),
 				TTL:        1, // Auto
 				Proxied:    proxied,
-				Cloudflare: cloudflare,
+				Cloudflare: recordCloudflare,
 			},
 		}
 
@@ -155,11 +173,39 @@ func (r *Reconciler) reconcileDNSRecords(ctx context.Context, ingress *networkin
 			errs = append(errs, fmt.Errorf("create/update DNSRecord %s: %w", hostname, err))
 		}
 	}
+	if err := r.cleanupStaleDNSRecords(ctx, ingress, desiredHostnames); err != nil {
+		errs = append(errs, fmt.Errorf("cleanup stale DNSRecords: %w", err))
+	}
 
 	if len(errs) > 0 {
 		return fmt.Errorf("failed to create %d DNSRecords: %w", len(errs), errors.Join(errs...))
 	}
 	return nil
+}
+
+func (r *Reconciler) cleanupStaleDNSRecords(ctx context.Context, ingress *networkingv1.Ingress, desiredHostnames map[string]struct{}) error {
+	records := &networkingv1alpha2.DNSRecordList{}
+	if err := r.List(ctx, records,
+		client.InNamespace(ingress.Namespace),
+		client.MatchingLabels{
+			ManagedByAnnotation:           ManagedByValue,
+			"cloudflare.com/ingress-name": ingress.Name,
+		},
+	); err != nil {
+		return err
+	}
+
+	var errs []error
+	for i := range records.Items {
+		record := &records.Items[i]
+		if _, ok := desiredHostnames[record.Spec.Name]; ok {
+			continue
+		}
+		if err := r.Delete(ctx, record); err != nil && !apierrors.IsNotFound(err) {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // sanitizeDNSRecordName creates a valid Kubernetes resource name from hostname

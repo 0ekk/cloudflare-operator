@@ -198,13 +198,13 @@ func (r *LifecycleController) createAPIClientFromLegacyTunnelSource(
 			}, tunnel); err != nil {
 				return nil, fmt.Errorf("get source Tunnel %s/%s: %w", source.Ref.Namespace, source.Ref.Name, err)
 			}
-			return cf.NewAPIClientFromDetails(ctx, r.Client, source.Ref.Namespace, tunnel.Spec.Cloudflare)
+			return cf.NewAPIClientFromDetails(ctx, r.Client, source.Ref.Namespace, tunnel.Spec.Cloudflare.CloudflareDetails)
 		case "ClusterTunnel":
 			clusterTunnel := &v1alpha2.ClusterTunnel{}
 			if err := r.Client.Get(ctx, apitypes.NamespacedName{Name: source.Ref.Name}, clusterTunnel); err != nil {
 				return nil, fmt.Errorf("get source ClusterTunnel %s: %w", source.Ref.Name, err)
 			}
-			return cf.NewAPIClientFromDetails(ctx, r.Client, common.OperatorNamespace, clusterTunnel.Spec.Cloudflare)
+			return cf.NewAPIClientFromDetails(ctx, r.Client, common.OperatorNamespace, clusterTunnel.Spec.Cloudflare.CloudflareDetails)
 		}
 	}
 

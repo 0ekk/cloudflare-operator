@@ -34,9 +34,11 @@ func NewTunnelBuilder(name, namespace string) *TunnelBuilder {
 				UID:       types.UID(fmt.Sprintf("tunnel-%s-%d", name, time.Now().UnixNano())),
 			},
 			Spec: v1alpha2.TunnelSpec{
-				Cloudflare: v1alpha2.CloudflareDetails{
-					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-						Name: "default-credentials",
+				Cloudflare: v1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: v1alpha2.CloudflareDetails{
+						CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+							Name: "default-credentials",
+						},
 					},
 				},
 			},
@@ -98,9 +100,11 @@ func NewClusterTunnelBuilder(name string) *ClusterTunnelBuilder {
 				UID:  types.UID(fmt.Sprintf("clustertunnel-%s-%d", name, time.Now().UnixNano())),
 			},
 			Spec: v1alpha2.TunnelSpec{
-				Cloudflare: v1alpha2.CloudflareDetails{
-					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-						Name: "default-credentials",
+				Cloudflare: v1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: v1alpha2.CloudflareDetails{
+						CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+							Name: "default-credentials",
+						},
 					},
 				},
 			},

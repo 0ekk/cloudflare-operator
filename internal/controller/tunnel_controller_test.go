@@ -68,14 +68,16 @@ var _ = ginkgo.Describe("Tunnel Controller", func() {
 					Namespace: testTunnelNamespace,
 				},
 				Spec: networkingv1alpha2.TunnelSpec{
-					Cloudflare: networkingv1alpha2.CloudflareDetails{
-						Domain:                              "example.com",
-						Secret:                              testSecretName,
-						AccountId:                           "test-account-id",
-						CLOUDFLARE_API_TOKEN:                "CLOUDFLARE_API_TOKEN",
-						CLOUDFLARE_API_KEY:                  "CLOUDFLARE_API_KEY",
-						CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE",
-						CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET",
+					Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+						CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+							Domain:                              "example.com",
+							Secret:                              testSecretName,
+							AccountId:                           "test-account-id",
+							CLOUDFLARE_API_TOKEN:                "CLOUDFLARE_API_TOKEN",
+							CLOUDFLARE_API_KEY:                  "CLOUDFLARE_API_KEY",
+							CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE",
+							CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET",
+						},
 					},
 					NewTunnel: &networkingv1alpha2.NewTunnel{
 						Name: "test-new-tunnel",
@@ -105,14 +107,16 @@ var _ = ginkgo.Describe("Tunnel Controller", func() {
 					Namespace: testTunnelNamespace,
 				},
 				Spec: networkingv1alpha2.TunnelSpec{
-					Cloudflare: networkingv1alpha2.CloudflareDetails{
-						Domain:                              "example.com",
-						Secret:                              testSecretName,
-						AccountId:                           "test-account-id",
-						CLOUDFLARE_API_TOKEN:                "CLOUDFLARE_API_TOKEN",
-						CLOUDFLARE_API_KEY:                  "CLOUDFLARE_API_KEY",
-						CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE",
-						CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET",
+					Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+						CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+							Domain:                              "example.com",
+							Secret:                              testSecretName,
+							AccountId:                           "test-account-id",
+							CLOUDFLARE_API_TOKEN:                "CLOUDFLARE_API_TOKEN",
+							CLOUDFLARE_API_KEY:                  "CLOUDFLARE_API_KEY",
+							CLOUDFLARE_TUNNEL_CREDENTIAL_FILE:   "CLOUDFLARE_TUNNEL_CREDENTIAL_FILE",
+							CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET: "CLOUDFLARE_TUNNEL_CREDENTIAL_SECRET",
+						},
 					},
 					NewTunnel: &networkingv1alpha2.NewTunnel{
 						Name: "test-new-tunnel",
@@ -141,8 +145,10 @@ var _ = ginkgo.Describe("Tunnel Controller", func() {
 					Namespace: "default",
 				},
 				Spec: networkingv1alpha2.TunnelSpec{
-					Cloudflare: networkingv1alpha2.CloudflareDetails{
-						Domain: "example.com",
+					Cloudflare: networkingv1alpha2.TunnelCloudflareDetails{
+						CloudflareDetails: networkingv1alpha2.CloudflareDetails{
+							Domain: "example.com",
+						},
 					},
 				},
 				Status: networkingv1alpha2.TunnelStatus{

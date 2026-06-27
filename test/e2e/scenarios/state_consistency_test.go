@@ -110,8 +110,8 @@ func TestStateConsistencyAfterDeletion(t *testing.T) {
 				Name: "state-test-vnet",
 			},
 			Spec: v1alpha2.VirtualNetworkSpec{
-				Name:      "state-test-vnet",
-				Comment:   "E2E state consistency test",
+				Name:             "state-test-vnet",
+				Comment:          "E2E state consistency test",
 				IsDefaultNetwork: false,
 				Cloudflare: v1alpha2.CloudflareDetails{
 					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
@@ -281,9 +281,11 @@ func TestSyncStateSourceTracking(t *testing.T) {
 			NewTunnel: &v1alpha2.NewTunnel{
 				Name: "source-tracking-tunnel",
 			},
-			Cloudflare: v1alpha2.CloudflareDetails{
-				CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-					Name: testCredentialsName,
+			Cloudflare: v1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: v1alpha2.CloudflareDetails{
+					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+						Name: testCredentialsName,
+					},
 				},
 			},
 		},

@@ -45,6 +45,17 @@ func TestTunnelTypes(t *testing.T) {
 		assert.Equal(t, "creds", details.CredentialsRef.Name)
 		assert.Equal(t, "example.com", details.Domain)
 	})
+
+	t.Run("TunnelCloudflareDetails domains", func(t *testing.T) {
+		details := TunnelCloudflareDetails{
+			CloudflareDetails: CloudflareDetails{
+				Domain: "example.com",
+			},
+			Domains: []string{"example.com", "linuxpods.com"},
+		}
+		assert.Equal(t, "example.com", details.Domain)
+		assert.Equal(t, []string{"example.com", "linuxpods.com"}, details.Domains)
+	})
 }
 
 func TestTunnelSpec(t *testing.T) {
@@ -54,8 +65,10 @@ func TestTunnelSpec(t *testing.T) {
 		OriginCaPool:   "ca-pool",
 		Protocol:       "http2",
 		FallbackTarget: "http_status:404",
-		Cloudflare: CloudflareDetails{
-			Domain: "example.com",
+		Cloudflare: TunnelCloudflareDetails{
+			CloudflareDetails: CloudflareDetails{
+				Domain: "example.com",
+			},
 		},
 		NewTunnel: &NewTunnel{Name: "test-tunnel"},
 	}
@@ -70,16 +83,28 @@ func TestTunnelSpec(t *testing.T) {
 
 func TestTunnelStatus(t *testing.T) {
 	status := TunnelStatus{
-		TunnelId:           "tunnel-123",
-		TunnelName:         "my-tunnel",
-		AccountId:          "acc-123",
-		ZoneId:             "zone-123",
+		TunnelId:   "tunnel-123",
+		TunnelName: "my-tunnel",
+		AccountId:  "acc-123",
+		ZoneId:     "zone-123",
+		Domains: []TunnelDomainStatus{
+			{
+				Domain:  "linuxpods.com",
+				ZoneId:  "zone-linuxpods",
+				State:   TunnelDomainStateReady,
+				Message: "Domain resolved",
+			},
+		},
 		ObservedGeneration: 5,
 	}
 
 	assert.Equal(t, "tunnel-123", status.TunnelId)
 	assert.Equal(t, "my-tunnel", status.TunnelName)
 	assert.Equal(t, "acc-123", status.AccountId)
+	require.Len(t, status.Domains, 1)
+	assert.Equal(t, "linuxpods.com", status.Domains[0].Domain)
+	assert.Equal(t, "zone-linuxpods", status.Domains[0].ZoneId)
+	assert.Equal(t, TunnelDomainStateReady, status.Domains[0].State)
 	assert.Equal(t, int64(5), status.ObservedGeneration)
 }
 
@@ -511,8 +536,10 @@ func TestCloudflareDeepCopy(t *testing.T) {
 			},
 			Spec: TunnelSpec{
 				NoTlsVerify: true,
-				Cloudflare: CloudflareDetails{
-					Domain: "example.com",
+				Cloudflare: TunnelCloudflareDetails{
+					CloudflareDetails: CloudflareDetails{
+						Domain: "example.com",
+					},
 				},
 			},
 		}

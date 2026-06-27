@@ -55,9 +55,11 @@ func TestTunnelLifecycle(t *testing.T) {
 				NewTunnel: &v1alpha2.NewTunnel{
 					Name: "e2e-test-tunnel",
 				},
-				Cloudflare: v1alpha2.CloudflareDetails{
-					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-						Name: testCredentialsName,
+				Cloudflare: v1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: v1alpha2.CloudflareDetails{
+						CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+							Name: testCredentialsName,
+						},
 					},
 				},
 			},
@@ -154,9 +156,11 @@ func TestClusterTunnelLifecycle(t *testing.T) {
 				NewTunnel: &v1alpha2.NewTunnel{
 					Name: "e2e-test-cluster-tunnel",
 				},
-				Cloudflare: v1alpha2.CloudflareDetails{
-					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-						Name: testCredentialsName,
+				Cloudflare: v1alpha2.TunnelCloudflareDetails{
+					CloudflareDetails: v1alpha2.CloudflareDetails{
+						CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+							Name: testCredentialsName,
+						},
 					},
 				},
 			},
@@ -213,9 +217,11 @@ func TestTunnelWithExistingTunnel(t *testing.T) {
 			ExistingTunnel: &v1alpha2.ExistingTunnel{
 				Id: "existing-tunnel-id-12345",
 			},
-			Cloudflare: v1alpha2.CloudflareDetails{
-				CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-					Name: testCredentialsName,
+			Cloudflare: v1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: v1alpha2.CloudflareDetails{
+					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+						Name: testCredentialsName,
+					},
 				},
 			},
 		},

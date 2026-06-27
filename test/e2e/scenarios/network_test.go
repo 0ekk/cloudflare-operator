@@ -155,9 +155,11 @@ func TestNetworkRouteLifecycle(t *testing.T) {
 			NewTunnel: &v1alpha2.NewTunnel{
 				Name: "e2e-route-tunnel",
 			},
-			Cloudflare: v1alpha2.CloudflareDetails{
-				CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-					Name: testCredentialsName,
+			Cloudflare: v1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: v1alpha2.CloudflareDetails{
+					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+						Name: testCredentialsName,
+					},
 				},
 			},
 		},
@@ -293,9 +295,11 @@ func TestPrivateServiceLifecycle(t *testing.T) {
 			NewTunnel: &v1alpha2.NewTunnel{
 				Name: "e2e-private-svc-tunnel",
 			},
-			Cloudflare: v1alpha2.CloudflareDetails{
-				CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
-					Name: testCredentialsName,
+			Cloudflare: v1alpha2.TunnelCloudflareDetails{
+				CloudflareDetails: v1alpha2.CloudflareDetails{
+					CredentialsRef: &v1alpha2.CloudflareCredentialsRef{
+						Name: testCredentialsName,
+					},
 				},
 			},
 		},
