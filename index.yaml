@@ -2,6 +2,27 @@ apiVersion: v1
 entries:
   cloudflare-operator:
   - apiVersion: v2
+    appVersion: v0.0.4
+    created: "2026-06-27T08:24:11.773763192Z"
+    description: Cloudflare Zero Trust Operator for Kubernetes
+    digest: 982328bec2adf1bbe10678e70dba555b4ead63e06eb6dadd130d458b2d459b93
+    home: https://github.com/0ekk/cloudflare-operator
+    keywords:
+    - cloudflare
+    - kubernetes
+    - operator
+    - zerotrust
+    maintainers:
+    - name: 0ekk
+      url: https://github.com/0ekk
+    name: cloudflare-operator
+    sources:
+    - https://github.com/0ekk/cloudflare-operator
+    type: application
+    urls:
+    - https://github.com/0ekk/cloudflare-operator/releases/download/cloudflare-operator-0.0.4/cloudflare-operator-0.0.4.tgz
+    version: 0.0.4
+  - apiVersion: v2
     appVersion: v0.0.3
     created: "2026-03-23T10:23:33.256886601Z"
     description: Cloudflare Zero Trust Operator for Kubernetes
@@ -43,4 +64,4 @@ entries:
     urls:
     - https://github.com/0ekk/cloudflare-operator/releases/download/cloudflare-operator-0.0.2/cloudflare-operator-0.0.2.tgz
     version: 0.0.2
-generated: "2026-03-23T10:23:33.256901228Z"
+generated: "2026-06-27T08:24:11.773774774Z"
